@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  ReLoop packaging bootstrap — the artifact bucket `aws cloudformation package`
+  uploads the Lambda bundle to. Exists as CloudFormation so NO resource in this
+  project is created outside IaC. Re-deployable/idempotent.
+
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub reloop-artifacts-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirePackagedArtifacts
+            Status: Enabled
+            ExpirationInDays: 7
+
+Outputs:
+  ArtifactBucketName:
+    Description: Pass to `aws cloudformation package --s3-bucket`.
+    Value: !Ref ArtifactBucket

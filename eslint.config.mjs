@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated Lambda bundle (built by infra/build.mjs) and gitignored
+    // scratch space — build output, not source.
+    "infra/dist/**",
+    ".tmp-test/**",
+    ".local-uploads/**",
   ]),
 ]);
 

@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  ReLoop cloud layer for ap-south-1 — private S3 image bucket, DynamoDB scan
+  table, and the analysis Lambda behind an HTTP API. Deploys the EXISTING
+  application pipeline (src/lib/scan-pipeline) unchanged; local fallbacks are
+  untouched because nothing here modifies application code or its env contract.
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+    Description: Logical stage label (the API uses the $default stage, so the base URL has no stage prefix).
+  AllowedOrigins:
+    Type: String
+    Default: "http://localhost:3000,http://localhost:3100"
+    Description: Comma-separated browser origins allowed by the API's CORS policy.
+  BedrockModelId:
+    Type: String
+    Default: global.amazon.nova-2-lite-v1:0
+    Description: >-
+      Bedrock inference profile used for device image analysis. Verified live
+      from this account in ap-south-1 (forced tool call, schema-valid output).
+  BedrockRegion:
+    Type: String
+    Default: ap-south-1
+    Description: >-
+      Region the Lambda calls Bedrock in. Kept separate from the stack region
+      because Bedrock model access is granted per-region; this model is
+      verified working in ap-south-1, so it matches the stack region today.
+      Compute, S3 and DynamoDB are unaffected by this value.
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - x86_64
+
+Resources:
+  # ---------------------------------------------------------------- storage --
+  ImageBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldScanImages
+            Status: Enabled
+            ExpirationInDays: 365
+
+  ScanTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      # Must match SCAN_TABLE_SCHEMA in src/lib/aws/schema.ts exactly.
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # ------------------------------------------------------------------ lambda --
+  ScanFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: reloop-scan-service
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ScanImages
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub ${ImageBucket.Arn}/*
+              - Sid: ScanImageBucketMetadata
+                Effect: Allow
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: !GetAtt ImageBucket.Arn
+              - Sid: ScanRecords
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                Resource:
+                  - !GetAtt ScanTable.Arn
+                  - !Sub ${ScanTable.Arn}/index/GSI1
+              # Global inference profiles fan out to foundation models in the
+              # profile's backing regions, so both the profile and the model
+              # family must be invokable.
+              - Sid: BedrockNova2Lite
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  # Region-wildcarded: the global inference profile is invoked
+                  # from RELOOP_BEDROCK_REGION, and a global profile fans out
+                  # to the foundation model in its backing regions.
+                  - !Sub arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/${BedrockModelId}
+                  - !Sub arn:${AWS::Partition}:bedrock:*::foundation-model/amazon.nova-2-lite-v1:0
+
+  ScanFunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-scans
+      RetentionInDays: 14
+
+  ScanFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-scans
+      CodeUri: dist/
+      Handler: index.handler
+      Role: !GetAtt ScanFunctionRole.Arn
+      Environment:
+        Variables:
+          RELOOP_SCAN_TABLE: !Ref ScanTable
+          RELOOP_IMAGE_BUCKET: !Ref ImageBucket
+          RELOOP_ANALYSIS_PROVIDER: bedrock
+          RELOOP_BEDROCK_MODEL_ID: !Ref BedrockModelId
+          RELOOP_BEDROCK_REGION: !Ref BedrockRegion
+          RELOOP_ALLOWED_ORIGINS: !Ref AllowedOrigins
+      Events:
+        PostScans:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /scans
+            Method: POST
+            PayloadFormatVersion: "2.0"
+        GetScan:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /scans/{scanId}
+            Method: GET
+            PayloadFormatVersion: "2.0"
+        OptionsScans:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /scans
+            Method: OPTIONS
+            PayloadFormatVersion: "2.0"
+        OptionsScan:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /scans/{scanId}
+            Method: OPTIONS
+            PayloadFormatVersion: "2.0"
+
+  # --------------------------------------------------------------------- api --
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+
+Outputs:
+  ApiBaseUrl:
+    Description: Value for NEXT_PUBLIC_API_BASE_URL (client appends /scans).
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
+  ImageBucketName:
+    Description: Value for RELOOP_IMAGE_BUCKET.
+    Value: !Ref ImageBucket
+  ScanTableName:
+    Description: Value for RELOOP_SCAN_TABLE.
+    Value: !Ref ScanTable
+  ScanFunctionName:
+    Description: Deployed analysis Lambda.
+    Value: !Ref ScanFunction
+  LogGroupName:
+    Description: CloudWatch log group for the scan Lambda.
+    Value: !Ref ScanFunctionLogs
+  BedrockModelId:
+    Description: Bedrock inference profile wired into the Lambda.
+    Value: !Ref BedrockModelId
+  BedrockRegion:
+    Description: Region the Lambda invokes Bedrock in (model access is per-region).
+    Value: !Ref BedrockRegion
+  Region:
+    Description: Region this stack deploys into.
+    Value: !Ref AWS::Region
