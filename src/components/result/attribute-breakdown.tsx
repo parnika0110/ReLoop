@@ -2,35 +2,20 @@
 
 /**
  * Attribute breakdown — five measured attributes as elegant animated
- * indicators. Values come from the real score contributions (no hardcoding);
- * bars animate once on mount.
+ * indicators. Values come from the real score contributions (no hardcoding).
+ *
+ * Each bar's width is rendered from the value during render; the reveal is a
+ * CSS animation with a stagger delay. An IntersectionObserver used to gate the
+ * width behind a callback, and a callback that never arrives (frozen or
+ * throttled page) left every bar at 0% regardless of the score.
  */
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import type { ReLoopScore } from "@/types/score";
 
 export function AttributeBreakdown({ score }: { score: ReLoopScore }) {
-  const ref = useRef<HTMLDListElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <dl ref={ref} className="space-y-5">
+    <dl className="space-y-5">
       {score.contributions.map((c, i) => {
         const isLift = c.value >= 50;
         return (
@@ -44,13 +29,19 @@ export function AttributeBreakdown({ score }: { score: ReLoopScore }) {
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
               <div
                 className={cn(
-                  "h-full rounded-full transition-[width] duration-1000 ease-out",
+                  "h-full rounded-full",
                   isLift ? "bg-lime" : "bg-mint/70",
                 )}
-                style={{
-                  width: visible ? `${c.value}%` : "0%",
-                  transitionDelay: `${i * 110}ms`,
-                }}
+                style={
+                  {
+                    // Final width on the element: correct whether or not the
+                    // keyframes below ever run.
+                    width: `${c.value}%`,
+                    "--attribute-bar-from": "0%",
+                    "--attribute-bar-to": `${c.value}%`,
+                    animation: `attribute-bar-in 1000ms ease-out ${i * 110}ms both`,
+                  } as CSSProperties
+                }
               />
             </div>
           </div>

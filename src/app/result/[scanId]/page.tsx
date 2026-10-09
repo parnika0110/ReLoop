@@ -4,13 +4,16 @@
  * THE RESULT PAGE — the hero screen of ReLoop.
  *
  * Fetches the real scan through the API abstraction (never hardcoded data),
- * then presents the pipeline's output in the required hierarchy:
+ * then tells the story the product is about:
  *
- *   DEVICE → NEXT LIFE SCORE → BEST NEXT LIFE → WHY → ATTRIBUTE BREAKDOWN
- *   → IMPACT → COMPARE FUTURES → ACTION
+ *   IT'S NOT WASTE YET → WHAT CAN STILL BE SAVED? → DEVICE DNA
+ *   → WHAT MATTERS TO YOU? → COMPARE ITS FUTURES → THE WINNING PATH
+ *   → WHAT TO DO NEXT → EVIDENCE & ASSUMPTIONS
  *
- * Factual analysis (AI observations) and estimates (assumption-based impact)
- * are visually separated and individually labelled.
+ * Wow first, evidence second: measured facts, assumptions and provenance all
+ * stay below the story, still one scroll away. Factual analysis (AI
+ * observations) and estimates (assumption-based impact) are visually
+ * separated and individually labelled.
  */
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -19,21 +22,29 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  ArrowDown,
   Boxes,
   CalendarClock,
   CircleDollarSign,
-  Cpu,
+  Dna,
+  Lightbulb,
   RotateCw,
   ScanLine,
+  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 import { getScan, ApiError } from "@/lib/api/client";
-import { ScoreRing } from "@/components/result/score-ring";
-import { AttributeBreakdown } from "@/components/result/attribute-breakdown";
+import { deviceDisplayName } from "@/lib/brand";
+import { WasteReveal } from "@/components/result/waste-reveal";
+import { DeviceDna } from "@/components/result/device-dna";
+import { SavedSection } from "@/components/result/saved-section";
+import { PrioritySelector } from "@/components/result/priority-selector";
 import { FutureSimulator } from "@/components/result/future-simulator";
 import { ActionSection } from "@/components/result/action-section";
+import { AttributeBreakdown } from "@/components/result/attribute-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { Priority } from "@/lib/priority";
 import type { ScanFetchResponse } from "@/types/scan";
 
 type LoadState =
@@ -45,7 +56,7 @@ function SectionHeading({
   step,
   title,
   icon: Icon,
-  /** The identity section is this page's top-level heading; the rest are h2. */
+  /** The reveal's headline is this page's top-level heading; the rest are h2. */
   level: Level = "h2",
 }: {
   step: string;
@@ -75,6 +86,8 @@ export default function ResultPage({
 }) {
   const [state, setState] = useState<LoadState>({ phase: "loading" });
   const [scanId, setScanId] = useState<string | null>(null);
+  /** User preference for the futures section — presentation only. */
+  const [priority, setPriority] = useState<Priority | null>(null);
 
   const load = useCallback(async (id: string) => {
     setState({ phase: "loading" });
@@ -114,16 +127,18 @@ export default function ResultPage({
     if (state.phase !== "ready") return;
     const { scan } = state.data;
     if (scan.status !== "complete" || !scan.analysis || !scan.score) return;
-    const name =
-      [scan.analysis.brand, scan.analysis.model].filter(Boolean).join(" ") ||
-      scan.analysis.deviceType;
+    const name = deviceDisplayName(scan.analysis);
     document.title = `${name} — ${scan.score.overall} Next Life Score`;
   }, [state]);
 
   // --- Loading --------------------------------------------------------------
   if (state.phase === "loading") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-5">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-screen flex-col items-center justify-center gap-5"
+      >
         <RotateCw className="size-6 animate-spin text-lime" />
         <p className="label-mono text-muted">Loading result</p>
       </div>
@@ -190,9 +205,8 @@ export default function ResultPage({
   }
 
   const { analysis, score, recommendation, engine, impactEstimates } = scan;
-  const deviceName =
-    [analysis.brand, analysis.model].filter(Boolean).join(" ") ||
-    analysis.deviceType;
+  const deviceName = deviceDisplayName(analysis);
+  const isMock = scan.analysisSource?.provider === "mock";
 
   return (
     // overflow-x-clip (not hidden) — `hidden` on one axis makes the other
@@ -227,122 +241,109 @@ export default function ResultPage({
       </header>
 
       <main className="mx-auto max-w-5xl px-5 pb-24 md:px-8">
-        {/* ── 1. DEVICE ─────────────────────────────────────────────── */}
-        <section className="animate-fade-up pt-10 md:pt-14">
-          <SectionHeading
-            step="01 — Identity"
-            title="Device"
-            icon={Cpu}
-            level="h1"
-          />
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            {imageUrl && (
-              <div className="relative w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 sm:w-56">
-                {/* eslint-disable-next-line @next/next/no-img-element -- presigned/local URL */}
-                <img
-                  src={imageUrl}
-                  alt={`Uploaded ${analysis.deviceType}`}
-                  className="aspect-[4/3] w-full object-cover"
-                />
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge>{analysis.deviceType}</Badge>
-                <Badge variant="mint">
-                  confidence {analysis.confidence}/100
-                </Badge>
-                {scan.analysisSource?.provider === "mock" && (
-                  <Badge variant="neutral">mock analysis</Badge>
-                )}
-              </div>
-              <p className="display mt-3 truncate text-3xl text-bone md:text-4xl">
-                {deviceName}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
-                <span>
-                  est. age{" "}
-                  {analysis.estimatedAge !== null
-                    ? `${analysis.estimatedAge} yrs`
-                    : "unknown"}
-                </span>
-                <span>
-                  {new Date(scan.createdAt).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              {analysis.observedIssues.length > 0 && (
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {analysis.observedIssues.map((issue) => (
-                    <li
-                      key={issue.id}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted"
-                    >
-                      {issue.label}
-                      <span className="text-muted/50"> · {issue.severity}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
+        {/* ── THE REVEAL ───────────────────────────────────────────── */}
+        <WasteReveal
+          scanId={scan.scanId}
+          createdAt={scan.createdAt}
+          imageUrl={imageUrl}
+          analysis={analysis}
+          score={score}
+          recommendation={recommendation}
+          isMock={isMock}
+        />
+
+        {/* ── 1. DEVICE DNA ────────────────────────────────────────── */}
+        <section id="dna" className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading step="01 — Understand" title="Device DNA" icon={Dna} />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Five measured attributes — the same numbers the engine scored.
+            Nothing here is invented; it is what a single photo can honestly
+            say about what remains.
+          </p>
+          <DeviceDna score={score} recommendation={recommendation} />
         </section>
 
-        {/* ── 2+3. SCORE + BEST NEXT LIFE ───────────────────────────── */}
-        <section className="animate-fade-up pt-14 md:pt-20">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-charcoal/70 backdrop-blur-sm">
+        {/* ── 2. WHAT CAN STILL BE SAVED ───────────────────────────── */}
+        <section className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading
+            step="02 — Reveal"
+            title="What can still be saved?"
+            icon={Lightbulb}
+          />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Opportunities grounded in what Nova actually observed — each card
+            quotes its evidence, and the limits are shown alongside the claims.
+          </p>
+          <SavedSection analysis={analysis} />
+        </section>
+
+        {/* ── 3. WHAT MATTERS TO YOU? ──────────────────────────────── */}
+        <section className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading
+            step="03 — Decide"
+            title="What matters to you?"
+            icon={SlidersHorizontal}
+          />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Pick a priority and ReLoop re-ranks the six futures below to match
+            it.
+          </p>
+          <PrioritySelector value={priority} onChange={setPriority} />
+        </section>
+
+        {/* ── 4. COMPARE ITS FUTURES ───────────────────────────────── */}
+        <section className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading
+            step="04 — Compare"
+            title="Compare its futures"
+            icon={ArrowDown}
+          />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Today, your device, six possible futures — and what each one
+            actually means for it.
+          </p>
+          <FutureSimulator
+            analysis={analysis}
+            recommendation={recommendation}
+            priority={priority}
+          />
+        </section>
+
+        {/* ── 5. THE WINNING PATH ──────────────────────────────────── */}
+        <section
+          id="winning-path"
+          className="animate-fade-up pt-16 md:pt-24"
+        >
+          <SectionHeading
+            step="05 — Recommendation"
+            title="The winning path"
+            icon={Sparkles}
+          />
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-charcoal/70 p-7 backdrop-blur-sm md:p-10">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_circle_at_15%_0%,rgba(201,242,77,0.06),transparent_60%)]"
             />
-            <div className="relative flex flex-col items-center gap-8 p-7 md:flex-row md:gap-12 md:p-10">
-              {/* Score ring */}
-              <div className="text-center">
-                <ScoreRing value={score.overall} size={230} />
-                <p className="label-mono mt-4 text-muted">Next Life Score</p>
-                <p className="label-mono mt-1 text-muted/50">
-                  {score.engineVersion}
-                </p>
-              </div>
-
-              {/* Recommendation */}
-              <div className="flex-1 text-left">
-                <p className="label-mono text-lime">Best next life</p>
-                <p className="display mt-2 text-[clamp(2.5rem,7vw,4.5rem)] text-bone">
-                  {recommendation.headline}
-                </p>
-                <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-muted">
-                  {engine?.reasoning ?? recommendation.rationale}
-                </p>
-
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-                  <Badge variant="neutral">
-                    rule: {recommendation.matchedRuleId}
-                  </Badge>
-                  <Badge variant="mint">
-                    confidence {engine?.confidence ?? analysis.confidence}/100
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── 4+5. WHY + ATTRIBUTE BREAKDOWN ────────────────────────── */}
-        <section className="animate-fade-up pt-14 md:pt-20">
-          <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-            <div>
-              <SectionHeading step="03 — Why" title="Why this path" icon={Sparkles} />
-              <p className="text-[15px] leading-relaxed text-muted">
-                {recommendation.rationale}
+            <div className="relative">
+              <p className="label-mono text-lime">Best next life</p>
+              <p className="display mt-2 text-[clamp(2.5rem,7vw,4.5rem)] text-bone">
+                {recommendation.headline}
+              </p>
+              <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
+                {engine?.reasoning ?? recommendation.rationale}
               </p>
 
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Badge variant="neutral">rule: {recommendation.matchedRuleId}</Badge>
+                <Badge variant="mint">
+                  confidence {engine?.confidence ?? analysis.confidence}/100
+                </Badge>
+                <Badge variant="neutral">{score.engineVersion}</Badge>
+              </div>
+
               {engine && engine.contributingFactors.length > 0 && (
-                <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-1 xl:grid-cols-2">
-                  <p className="label-mono text-muted/70 sm:col-span-2 lg:col-span-1 xl:col-span-2">
+                <div className="mt-7 grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-3">
+                  <p className="label-mono text-muted/70 sm:col-span-2 lg:col-span-3">
                     Contributing factors
                   </p>
                   {engine.contributingFactors.slice(0, 3).map((f) => (
@@ -371,18 +372,62 @@ export default function ResultPage({
               <div className="mt-6 rounded-xl border border-white/[0.08] bg-mint-deep/40 p-4">
                 <p className="label-mono text-mint">Measured facts</p>
                 <p className="mt-2 text-xs leading-relaxed text-muted">
-                  The values to the right come from AI observation of your
-                  photo — factual attributes of this device, not predictions.
+                  The values behind this decision come from AI observation of
+                  your photo — factual attributes of this device, not
+                  predictions. Device: {deviceName}.
                 </p>
               </div>
             </div>
+          </div>
+        </section>
 
+        {/* ── 6. ACTION ────────────────────────────────────────────── */}
+        <section className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading step="06 — Action" title="What to do next" icon={ArrowRight} />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Concrete steps for the paths worth acting on — no marketplace, no
+            fake partners.
+          </p>
+          <ActionSection />
+        </section>
+
+        {/* ── 7. EVIDENCE (below the story, still one scroll away) ─── */}
+        <section className="animate-fade-up pt-16 md:pt-24">
+          <SectionHeading
+            step="07 — Evidence"
+            title="Evidence & assumptions"
+            icon={Activity}
+          />
+          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-muted">
+            Everything the decision rests on — provenance, the scored
+            breakdown, and every estimate with its assumptions.
+          </p>
+
+          {/* Provenance */}
+          <div className="mb-6 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+            <p className="label-mono text-muted/70">Provenance</p>
+            <div className="mt-2.5 flex flex-wrap gap-x-6 gap-y-1.5 font-mono text-xs text-muted">
+              <span>
+                {isMock
+                  ? "provider: mock (local fixture)"
+                  : `model: ${scan.analysisSource?.modelId ?? "unknown"}`}
+              </span>
+              <span>engine: {score.engineVersion}</span>
+              <span>confidence: {analysis.confidence}/100</span>
+              <span>scan: {scan.scanId.slice(0, 8)}</span>
+              <span>
+                {new Date(scan.createdAt).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-10 md:grid-cols-2 md:gap-14">
             <div>
-              <SectionHeading
-                step="04 — Breakdown"
-                title="Attribute breakdown"
-                icon={Activity}
-              />
+              <p className="label-mono mb-5 text-lime">Score breakdown</p>
               <AttributeBreakdown score={score} />
               <p className="mt-5 text-xs leading-relaxed text-muted/70">
                 Each attribute × its weight contributes to the Next Life
@@ -390,123 +435,102 @@ export default function ResultPage({
                 resale 15%, material recovery 15%.
               </p>
             </div>
-          </div>
-        </section>
 
-        {/* ── 5. IMPACT ─────────────────────────────────────────────── */}
-        <section className="animate-fade-up pt-14 md:pt-20">
-          <SectionHeading step="05 — Impact" title="Estimated impact" icon={Sparkles} />
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-300" />
-            <p className="text-xs leading-relaxed text-amber-100/80">
-              <strong className="font-medium text-amber-200">Estimates, not facts.</strong>{" "}
-              These figures are model-derived from category-level assumptions
-              (typical device mass and value) and this device&apos;s measured
-              attributes. They were not measured for your device.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            {impactEstimates?.map((e) => {
-              const icon =
-                e.metricId === "lifeExtensionMonths"
-                  ? CalendarClock
-                  : e.metricId === "wasteAvoidedKg"
-                    ? Boxes
-                    : CircleDollarSign;
-              const Icon = icon;
-              return (
-                <div
-                  key={e.metricId}
-                  className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-colors duration-300 hover:border-lime/25"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="flex size-9 items-center justify-center rounded-xl bg-lime/10 text-lime">
-                      <Icon className="size-4" />
-                    </span>
-                    <span className="label-mono rounded-full border border-amber-400/30 px-2 py-0.5 text-amber-300/90">
-                      Estimated
-                    </span>
-                  </div>
-                  <p className="display mt-4 text-4xl text-bone tabular-nums">
-                    {e.value}
-                    <span className="ml-1.5 text-sm font-normal text-muted">
-                      {e.unit}
-                    </span>
-                  </p>
-                  <p className="mt-1.5 text-sm text-muted">{e.label}</p>
-                  {e.range && (
-                    <p className="mt-2 font-mono text-xs text-muted/60">
-                      plausible {e.range.low}–{e.range.high} {e.unit}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {impactEstimates && impactEstimates.length > 0 && (
-            <details className="group mt-4 rounded-xl border border-white/[0.08]">
-              <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm text-muted [&::-webkit-details-marker]:hidden">
-                <span className="label-mono">
-                  How these estimates are built
-                </span>
-                <span className="transition-transform group-open:rotate-90">
-                  ›
-                </span>
-              </summary>
-              <div className="space-y-3 border-t border-white/[0.06] p-4 pt-3">
-                {impactEstimates.map((e) => (
-                  <div key={e.metricId}>
-                    <p className="text-sm text-bone/90">{e.label}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted">
-                      {e.basis}
-                    </p>
-                    <ul className="mt-1.5 space-y-0.5">
-                      {e.assumptions.map((a, i) => (
-                        <li
-                          key={i}
-                          className="flex gap-2 text-xs text-muted/70"
-                        >
-                          <span className="text-lime/50">·</span>
-                          {a}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+            <div>
+              <p className="label-mono mb-5 text-lime">
+                Estimated impact — {recommendation.headline}
+              </p>
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-300" />
+                <p className="text-xs leading-relaxed text-amber-100/80">
+                  <strong className="font-medium text-amber-200">
+                    Estimates, not facts.
+                  </strong>{" "}
+                  Model-derived from category-level assumptions and this
+                  device&apos;s measured attributes — not measured for your
+                  device.
+                </p>
               </div>
-            </details>
-          )}
-        </section>
 
-        {/* ── 6. COMPARE FUTURES ────────────────────────────────────── */}
-        <section className="animate-fade-up pt-14 md:pt-20">
-          <SectionHeading
-            step="06 — Simulator"
-            title="Compare its futures"
-            icon={RotateCw}
-          />
-          <p className="-mt-2 mb-6 text-sm text-muted">
-            See what each pathway could mean for this device. Estimates update
-            live from the same assumptions used above.
-          </p>
-          <FutureSimulator
-            analysis={analysis}
-            recommendedPath={recommendation.path}
-          />
-        </section>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {impactEstimates?.map((e) => {
+                  const Icon =
+                    e.metricId === "lifeExtensionMonths"
+                      ? CalendarClock
+                      : e.metricId === "wasteAvoidedKg"
+                        ? Boxes
+                        : CircleDollarSign;
+                  return (
+                    <div
+                      key={e.metricId}
+                      className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-colors duration-300 hover:border-lime/25"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-lime/10 text-lime">
+                          <Icon className="size-4" />
+                        </span>
+                        <span className="label-mono rounded-full border border-amber-400/30 px-2 py-0.5 text-amber-300/90">
+                          Estimated
+                        </span>
+                      </div>
+                      <p className="display mt-4 text-4xl text-bone tabular-nums">
+                        {e.value}
+                        <span className="ml-1.5 text-sm font-normal text-muted">
+                          {e.unit}
+                        </span>
+                      </p>
+                      <p className="mt-1.5 text-sm text-muted">{e.label}</p>
+                      {e.range && (
+                        <p className="mt-2 font-mono text-xs text-muted/60">
+                          plausible {e.range.low}–{e.range.high} {e.unit}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-        {/* ── 7. ACTION ─────────────────────────────────────────────── */}
-        <section className="animate-fade-up pt-14 md:pt-20">
-          <SectionHeading step="07 — Action" title="What to do next" icon={ArrowRight} />
-          <ActionSection />
+              {impactEstimates && impactEstimates.length > 0 && (
+                <details className="group mt-4 rounded-xl border border-white/[0.08]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm text-muted [&::-webkit-details-marker]:hidden">
+                    <span className="label-mono">
+                      How these estimates are built
+                    </span>
+                    <span className="transition-transform group-open:rotate-90">
+                      ›
+                    </span>
+                  </summary>
+                  <div className="space-y-3 border-t border-white/[0.06] p-4 pt-3">
+                    {impactEstimates.map((e) => (
+                      <div key={e.metricId}>
+                        <p className="text-sm text-bone/90">{e.label}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">
+                          {e.basis}
+                        </p>
+                        <ul className="mt-1.5 space-y-0.5">
+                          {e.assumptions.map((a, i) => (
+                            <li
+                              key={i}
+                              className="flex gap-2 text-xs text-muted/70"
+                            >
+                              <span className="text-lime/50">·</span>
+                              {a}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
         </section>
 
         {/* Footer CTA */}
         <div className="mt-16 flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-charcoal/60 p-8 text-center">
           <p className="display text-2xl text-bone">
-            Give every device a next life.
+            Every device has a next life.
           </p>
           <Link href="/scan">
             <Button size="lg">

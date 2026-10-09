@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft, Laptop, Smartphone, Tablet } from "lucide-react";
 import { DeviceUploader } from "@/components/scan/device-uploader";
+import { SampleButton } from "@/components/scan/sample-button";
 
 const SUPPORTED = [
   { label: "Laptops", icon: Laptop },
@@ -36,11 +38,22 @@ export default function ScanPage() {
           </h1>
           <p className="mt-4 text-muted">
             Upload one clear photo. ReLoop identifies the device, assesses its
-            condition, and calculates the highest-value next life.
+            condition, and finds what can still be saved.
           </p>
         </div>
 
-        <DeviceUploader />
+        {/* useSearchParams (inside the uploader) needs a Suspense boundary. */}
+        <Suspense
+          fallback={
+            <div className="w-full max-w-xl min-h-[340px] rounded-3xl border-2 border-dashed border-white/15 bg-charcoal/60" />
+          }
+        >
+          <DeviceUploader />
+        </Suspense>
+
+        <div className="mt-6">
+          <SampleButton />
+        </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
           {SUPPORTED.map(({ label, icon: Icon }) => (

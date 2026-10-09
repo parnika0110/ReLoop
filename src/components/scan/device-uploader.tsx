@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   ArrowRight,
@@ -25,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uploadDeviceImage, ApiError } from "@/lib/api/client";
+import { brandModelLabel } from "@/lib/brand";
 import { env } from "@/lib/env";
 import type { UploadScanResponse } from "@/types/scan";
 
@@ -95,6 +97,10 @@ export function DeviceUploader() {
       return;
     }
 
+    // A new upload supersedes any in-flight one (sample re-trigger, or a
+    // drop while a previous request is still running).
+    abortRef.current?.abort();
+
     setError(null);
     setProgress(0);
     setSelectedFile(file);
@@ -130,6 +136,42 @@ export function DeviceUploader() {
     const file = files?.[0];
     if (file) void startUpload(file);
   };
+
+  // "Try a sample device" (/scan?sample=<token>): fetch the bundled sample
+  // photo and run it through the exact same upload + analysis path — no
+  // special-casing downstream. The token VALUE is the dependency, so landing
+  // with ?sample=1 starts once, and a later click carrying a fresh token
+  // starts again — while an unchanged URL never re-triggers it.
+  const searchParams = useSearchParams();
+  const sampleToken = searchParams.get("sample");
+
+  useEffect(() => {
+    if (!sampleToken) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch("/samples/device-photo.jpg");
+        if (!response.ok) {
+          throw new Error(`sample fetch returned ${response.status}`);
+        }
+        const blob = await response.blob();
+        if (cancelled) return;
+        const file = new File([blob], "sample-device.jpg", {
+          type: blob.type || "image/jpeg",
+        });
+        void startUpload(file);
+      } catch {
+        if (cancelled) return;
+        setError(
+          "The sample device could not be loaded — upload your own photo instead.",
+        );
+        setPhase("error");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleToken, startUpload]);
 
   const reset = () => {
     abortRef.current?.abort();
@@ -219,7 +261,7 @@ export function DeviceUploader() {
                   </span>
                 </div>
                 <p className="mt-2 text-lg text-bone">
-                  {[analysis.brand, analysis.model].filter(Boolean).join(" ") || (
+                  {brandModelLabel(analysis) ?? (
                     <span className="text-muted">Brand not identifiable</span>
                   )}
                 </p>
@@ -291,7 +333,7 @@ export function DeviceUploader() {
                   </span>
                 </div>
                 <p className="mt-2 text-lg text-bone">
-                  {[analysis.brand, analysis.model].filter(Boolean).join(" ") || (
+                  {brandModelLabel(analysis) ?? (
                     <span className="text-muted">Brand not identifiable</span>
                   )}
                 </p>

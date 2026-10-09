@@ -1,16 +1,28 @@
 "use client";
 
 /**
- * "Compare its futures" — the differentiating section.
- * Runs the REAL deterministic impact estimator (src/engine/impact) in the
- * browser against the scan's actual analysis: pick any of the six pathways,
- * see its potential life extension / waste avoided / value retained.
- * All outputs labelled as estimates; no fabricated precision.
+ * "COMPARE ITS FUTURES" — the signature interaction.
+ *
+ * Narrative, understood in seconds:
+ *
+ *   TODAY → YOUR DEVICE → REPAIR/REFURBISH/REUSE/DONATE/RESELL/RECYCLE
+ *         → THE RESULTING FUTURE
+ *
+ * Selecting a future answers: what happens next, what the tradeoff is, why
+ * it might be appropriate (grounded in this device's measured attributes),
+ * the existing estimated impact/value, and whether it is the engine's
+ * recommendation.
+ *
+ * A user priority (src/lib/priority) may reorder the futures and mark up to
+ * two "fits your priority" — presentation only. The engine's recommendation
+ * is never recomputed here.
  */
 import { useMemo, useState } from "react";
 import {
-  Hammer,
+  ArrowDown,
+  Cpu,
   Gift,
+  Hammer,
   Recycle,
   RefreshCw,
   Tag,
@@ -19,72 +31,164 @@ import {
 } from "lucide-react";
 import { estimateImpact } from "@/engine/impact";
 import { PATHWAY_PROFILE } from "@/engine/impact-config";
+import {
+  EFFORT_NOTES,
+  PRIORITY_OPTIONS,
+  priorityMatches,
+  rankPriorities,
+  type Priority,
+} from "@/lib/priority";
 import { cn } from "@/lib/utils";
 import type { DeviceAnalysis } from "@/types/analysis";
-import { NEXT_LIFE_PATHS, type NextLifePath } from "@/types/score";
+import { NEXT_LIFE_PATHS, type NextLifePath, type Recommendation } from "@/types/score";
 
-const PATHWAY_META: Record<
-  NextLifePath,
-  { label: string; icon: LucideIcon; blurb: string }
-> = {
+interface PathwayMeta {
+  label: string;
+  icon: LucideIcon;
+  /** One-line identity of the future. */
+  blurb: string;
+  /** What actually happens if this future is chosen. */
+  next: string;
+  /** The honest tension in this choice. */
+  tradeoff: string;
+  /** Why it might fit THIS device — measured values only. */
+  why: (a: DeviceAnalysis) => string;
+}
+
+const PATHWAY_META: Record<NextLifePath, PathwayMeta> = {
   repair: {
     label: "Repair",
     icon: Wrench,
     blurb: "Fix the fault and keep it running.",
+    next: "A quote, a fixed part, and the device stays in your hands.",
+    tradeoff:
+      "Cheapest route back to value — but only while parts and labour cost less than the device is worth.",
+    why: (a) =>
+      `Repairability ${a.repairability}/100 and condition ${a.condition}/100 — the two numbers that decide whether a fix pays.`,
   },
   refurbish: {
     label: "Refurbish",
     icon: Hammer,
     blurb: "Restore to like-new, then pass it on.",
+    next: "A refurbisher services, cleans and restores it — then sells it on.",
+    tradeoff:
+      "Unlocks value the device doesn't carry yet — at the cost of professional restoration work.",
+    why: (a) =>
+      `Condition ${a.condition}/100 with resale potential ${a.resalePotential}/100 — the gap restoration would work on.`,
   },
   reuse: {
     label: "Reuse",
     icon: RefreshCw,
     blurb: "Straight into another pair of hands.",
+    next: "Erase your data and put it straight back into daily use.",
+    tradeoff: "No income and no work: it simply keeps being useful.",
+    why: (a) =>
+      `Reuse potential ${a.reusePotential}/100 and condition ${a.condition}/100 — how ready it is for the next user.`,
   },
   donate: {
     label: "Donate",
     icon: Gift,
     blurb: "Give it to someone who needs it.",
+    next: "Erase your data and give it to a school, charity or community group.",
+    tradeoff: "No return for you — the value goes to whoever receives it.",
+    why: (a) =>
+      `Reuse potential ${a.reusePotential}/100 with resale potential ${a.resalePotential}/100 — useful to a person even when the market won't pay.`,
   },
   resell: {
     label: "Resell",
     icon: Tag,
     blurb: "Sell it while the market still pays.",
+    next: "Erase it, photograph the real condition, list it against completed sales.",
+    tradeoff: "Cash now — but the market only pays for devices in good shape.",
+    why: (a) =>
+      `Resale potential ${a.resalePotential}/100 and condition ${a.condition}/100 — what the market still sees.`,
   },
   recycle: {
     label: "Recycle",
     icon: Recycle,
     blurb: "Recover materials, end its service life.",
+    next: "Hand it to a certified e-waste recycler — battery out first if you can.",
+    tradeoff: "Materials are recovered — and this device never works again.",
+    why: (a) =>
+      `Material recovery ${a.materialRecoveryPotential}/100 — the value that remains at end of life.`,
   },
 };
 
+function FlowArrow() {
+  return (
+    <div className="flex justify-center py-2" aria-hidden>
+      <ArrowDown className="size-4 text-lime/50" />
+    </div>
+  );
+}
+
 export function FutureSimulator({
   analysis,
-  recommendedPath,
+  recommendation,
+  priority,
 }: {
   analysis: DeviceAnalysis;
-  recommendedPath: NextLifePath;
+  recommendation: Recommendation;
+  priority: Priority | null;
 }) {
-  const [selected, setSelected] = useState<NextLifePath>(recommendedPath);
+  const [selected, setSelected] = useState<NextLifePath>(recommendation.path);
 
+  const order = useMemo(
+    () =>
+      priority ? rankPriorities(priority, analysis) : [...NEXT_LIFE_PATHS],
+    [priority, analysis],
+  );
+  const matches = useMemo(
+    () => (priority ? priorityMatches(priority, analysis) : []),
+    [priority, analysis],
+  );
   const estimates = useMemo(
     () => estimateImpact(analysis, selected),
     [analysis, selected],
   );
 
+  const meta = PATHWAY_META[selected];
+  const isRecommended = selected === recommendation.path;
+  const priorityLabel = priority
+    ? PRIORITY_OPTIONS.find((o) => o.id === priority)?.label
+    : null;
   const staysInUse = PATHWAY_PROFILE[selected].keepsDeviceInUse;
 
   return (
-    <div>
+    <div className="rounded-3xl border border-white/10 bg-charcoal/50 p-5 backdrop-blur-sm md:p-7">
+      {/* ── TODAY ─────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-4">
+        <span className="label-mono shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-bone/80">
+          Today
+        </span>
+        <span className="h-px flex-1 bg-white/10" />
+        <span className="shrink-0 text-sm text-muted">One unwanted device</span>
+      </div>
+      <FlowArrow />
+
+      {/* ── YOUR DEVICE ───────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5">
+        <span className="flex items-center gap-2.5 text-sm text-bone">
+          <Cpu className="size-4 shrink-0 text-lime" />
+          Your {analysis.deviceType}
+        </span>
+        <span className="label-mono text-muted">
+          condition {analysis.condition}/100 · reuse{" "}
+          {analysis.reusePotential}/100
+        </span>
+      </div>
+      <FlowArrow />
+
+      {/* ── SIX FUTURES ───────────────────────────────────────────── */}
+      <p className="label-mono mb-3 text-muted/70">Six possible futures</p>
       {/* Sticky segmented selector on mobile; a wrapping pill row from sm up.
-          top-[69px] clears the 69px sticky app header, so the pills park
-          directly beneath it instead of slipping under it. */}
+          top-[69px] clears the 69px sticky app header. */}
       <div className="flex flex-wrap gap-2 max-sm:sticky max-sm:top-[69px] max-sm:z-10 max-sm:-mx-5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:bg-ink max-sm:px-5 max-sm:py-3 max-sm:shadow-[0_1px_0_0_rgba(255,255,255,0.06)] max-sm:[scrollbar-width:none]">
-        {NEXT_LIFE_PATHS.map((path) => {
-          const meta = PATHWAY_META[path];
-          const Icon = meta.icon;
+        {order.map((path) => {
+          const pathwayMeta = PATHWAY_META[path];
+          const Icon = pathwayMeta.icon;
           const active = selected === path;
+          const fits = matches.includes(path);
           return (
             <button
               key={path}
@@ -99,74 +203,131 @@ export function FutureSimulator({
               )}
             >
               <Icon className="size-4" />
-              {meta.label}
-              {path === recommendedPath && (
+              {pathwayMeta.label}
+              {path === recommendation.path && (
                 <span
                   className={cn(
                     "label-mono rounded-full px-1.5 py-0.5 text-[10px] tracking-[0.1em]",
-                    active
-                      ? "bg-ink/15 text-ink"
-                      : "bg-lime/15 text-lime",
+                    active ? "bg-ink/15 text-ink" : "bg-lime/15 text-lime",
                   )}
                 >
                   Recommended
+                </span>
+              )}
+              {fits && !active && (
+                <span className="label-mono rounded-full bg-mint/15 px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-mint">
+                  Fits
                 </span>
               )}
             </button>
           );
         })}
       </div>
+      <FlowArrow />
 
-      <p className="mt-4 text-sm text-muted">
-        {PATHWAY_META[selected].blurb}
-      </p>
-
-      {/* Re-runs the fade when the scenario changes — subtle, once, cheap. */}
-      {/* Snap-scroll carousel on mobile; three columns from sm up. */}
-      <div
-        key={selected}
-        className="mt-5 grid gap-3 animate-fade-up sm:grid-cols-3 max-sm:flex max-sm:overflow-x-auto max-sm:snap-x max-sm:snap-mandatory"
-      >
-        {estimates.map((e) => (
-          <div
-            key={e.metricId}
-            className="rounded-xl border border-white/10 bg-mint-deep/40 p-4 transition-colors duration-300 hover:border-lime/25 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
-          >
-            <p className="label-mono text-lime">{e.label}</p>
-            <p className="mt-2 display text-3xl text-bone tabular-nums">
-              {e.value}
-              <span className="ml-1 text-base font-normal text-muted">
-                {e.unit}
+      {/* ── THE RESULTING FUTURE ──────────────────────────────────── */}
+      <div key={`${selected}-${priority ?? "none"}`} className="animate-fade-up">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="label-mono text-lime">The resulting future</p>
+          <div className="flex flex-wrap gap-2">
+            {priorityLabel && matches.includes(selected) && (
+              <span className="label-mono rounded-full border border-mint/30 bg-mint/10 px-2.5 py-1 text-mint">
+                Fits {priorityLabel}
               </span>
-            </p>
-            {e.range && (
-              <p className="mt-1 text-xs text-muted">
-                likely {e.range.low}–{e.range.high} {e.unit}
-              </p>
+            )}
+            {isRecommended && (
+              <span className="label-mono rounded-full border border-lime/30 bg-lime/10 px-2.5 py-1 text-lime">
+                RELOOP&apos;s pick
+              </span>
             )}
           </div>
-        ))}
+        </div>
+
+        <p className="display mt-2 text-[clamp(2.25rem,6vw,3.25rem)] text-bone">
+          {meta.label}
+        </p>
+        <p className="mt-2 text-[15px] text-muted">{meta.blurb}</p>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="label-mono text-mint/80">What happens next</p>
+            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+              {meta.next}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="label-mono text-amber-300/80">The tradeoff</p>
+            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+              {meta.tradeoff}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="label-mono text-lime/80">Why it might fit</p>
+            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+              {meta.why(analysis)}
+            </p>
+          </div>
+        </div>
+
+        {isRecommended && (
+          <div className="mt-3 rounded-xl border border-lime/25 bg-lime/[0.05] p-4">
+            <p className="label-mono text-lime">Why RELOOP picked it</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-bone/90">
+              {recommendation.rationale}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
+          <span className="label-mono text-muted/70">Asks of you</span>
+          <span className="text-sm text-bone/90">{EFFORT_NOTES[selected]}</span>
+        </div>
+
+        {/* Existing estimator values — labelled, unchanged assumptions. */}
+        <div
+          className="mt-4 grid gap-3 sm:grid-cols-3 max-sm:flex max-sm:overflow-x-auto max-sm:snap-x max-sm:snap-mandatory"
+        >
+          {estimates.map((e) => (
+            <div
+              key={e.metricId}
+              className="rounded-xl border border-white/10 bg-mint-deep/40 p-4 transition-colors duration-300 hover:border-lime/25 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
+            >
+              <p className="label-mono text-lime">{e.label}</p>
+              <p className="mt-2 display text-3xl text-bone tabular-nums">
+                {e.value}
+                <span className="ml-1 text-base font-normal text-muted">
+                  {e.unit}
+                </span>
+              </p>
+              {e.range && (
+                <p className="mt-1 text-xs text-muted">
+                  likely {e.range.low}–{e.range.high} {e.unit}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
+          <span className="label-mono mt-0.5 shrink-0 text-mint/80">
+            Circularity
+          </span>
+          {staysInUse
+            ? "This path keeps the device in use — no new device has to be manufactured yet."
+            : "This path ends the device's service life; its materials re-enter the supply chain instead of being lost."}
+        </p>
+
+        <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
+          <span className="label-mono mt-0.5 shrink-0 text-amber-300/90">
+            Estimate
+          </span>
+          Model-derived from category assumptions and this device&apos;s
+          measured attributes — not measured facts. Assumptions:{" "}
+          {estimates[0]?.assumptions
+            .filter((a) => a.includes("Base extension") || a.includes("Category"))
+            .join(" ") ?? ""}
+        </p>
       </div>
-
-      <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
-        <span className="label-mono mt-0.5 shrink-0 text-mint/80">
-          Circularity
-        </span>
-        {staysInUse
-          ? "This path keeps the device in use — no new device has to be manufactured yet."
-          : "This path ends the device's service life; its materials re-enter the supply chain instead of being lost."}
-      </p>
-
-      <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
-        <span className="label-mono mt-0.5 shrink-0 text-amber-300/90">
-          Estimate
-        </span>
-        Model-derived from category assumptions and this device&apos;s measured
-        attributes — not measured facts. Assumptions:{" "}
-        {estimates[0]?.assumptions
-          .filter((a) => a.includes("Base extension") || a.includes("Category"))
-          .join(" ") ?? ""}
-      </p>
     </div>
   );
 }

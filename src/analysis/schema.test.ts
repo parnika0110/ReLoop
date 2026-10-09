@@ -91,6 +91,35 @@ describe("parseModelPayload — honest refusal & rejection", () => {
     expect(result.analysis.brand).toBeNull();
   });
 
+  // Regression: Nova returned brand "0" when it could not identify one, and
+  // "0" is truthy — it survived `.filter(Boolean)` and leaked into the result
+  // heading as "0 — 40 Next Life Score". Brand must become null instead.
+  it("normalizes Nova's placeholder brand \"0\" to null", () => {
+    const result = parseModelPayload({ ...FIXTURES.laptop.payload, brand: "0" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.analysis.brand).toBeNull();
+    // contract unchanged: still string | null
+    expect(typeof result.analysis.brand).not.toBe("string");
+  });
+
+  it("normalizes other placeholder brands to null but keeps real ones", () => {
+    for (const placeholder of ["00", "N/A", "unknown", "null", " none ", "?"]) {
+      const result = parseModelPayload({
+        ...FIXTURES.laptop.payload,
+        brand: placeholder,
+      });
+      expect(result.ok, `brand ${placeholder}`).toBe(true);
+      if (!result.ok) return;
+      expect(result.analysis.brand, `brand ${placeholder}`).toBeNull();
+    }
+
+    const real = parseModelPayload({ ...FIXTURES.laptop.payload, brand: "Lenovo" });
+    expect(real.ok).toBe(true);
+    if (!real.ok) return;
+    expect(real.analysis.brand).toBe("Lenovo");
+  });
+
   it("rejects invalid issue severities", () => {
     const result = parseModelPayload({
       ...FIXTURES.tablet.payload,

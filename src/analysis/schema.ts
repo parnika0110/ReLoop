@@ -19,6 +19,7 @@ import {
   type ObservedIssue,
 } from "@/types/analysis";
 import type { AnalysisErrorKind } from "@/types/analysis";
+import { isBrandPlaceholder } from "@/lib/brand";
 
 export type ParseFailure = {
   kind: AnalysisErrorKind;
@@ -62,6 +63,17 @@ function isNullableString(value: unknown): value is string | null {
   const trimmed = value.trim();
   // Empty strings are treated as "not observed" → normalized to null.
   return trimmed.length === 0 || trimmed.length <= 120;
+}
+
+/**
+ * Normalize a brand string at the AI boundary: trim, and collapse
+ * placeholder junk to null. The contract stays `string | null` — the engine
+ * never sees brand at all, so this is display-only.
+ */
+function normalizeBrandValue(value: unknown): string | null {
+  const normalized = normalizeString(value);
+  if (normalized === null) return null;
+  return isBrandPlaceholder(normalized) ? null : normalized;
 }
 
 function isObservedIssue(value: unknown): value is ObservedIssue {
@@ -147,7 +159,7 @@ export function parseModelPayload(raw: unknown): ParseResult {
   // All fields checked above — assert types for the compiler.
   const analysis: DeviceAnalysis = {
     deviceType: payload.deviceType,
-    brand: normalizeString(payload.brand),
+    brand: normalizeBrandValue(payload.brand),
     model: normalizeString(payload.model),
     estimatedAge:
       payload.estimatedAge === null

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -18,32 +18,41 @@ export default function LandingPage() {
         <span className="label-mono text-bone">
           RE<span className="text-lime">LOOP</span>
         </span>
-        <Badge variant="neutral">Waste &amp; Energy</Badge>
+        <Badge variant="neutral" className="max-sm:hidden">
+          Next-life decision engine
+        </Badge>
       </header>
 
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
         <div className="animate-fade-up flex max-w-4xl flex-col items-center">
           <span className="label-mono mb-8 text-lime">
-            AI-powered circularity engine
+            Every device has a next life
           </span>
 
-          <h1 className="display text-[clamp(2.75rem,8vw,6rem)] text-bone">
+          <h1 className="display text-[clamp(2.75rem,8vw,6rem)] text-bone animate-reveal-wipe">
             Your old tech isn’t{" "}
             <span className="text-lime">waste</span> yet.
           </h1>
 
           <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted md:text-xl">
-            ReLoop analyzes your unwanted device and calculates its
-            highest-value next life — repair, refurbish, reuse, donate, resell,
-            or recycle.
+            RELOOP helps you find it — see what your old device can still
+            become, then choose what&apos;s next.
           </p>
 
-          <Link href="/scan" className="mt-12">
-            <Button size="lg">
-              Scan a device
-              <ArrowRight className="size-5" />
-            </Button>
-          </Link>
+          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link href="/scan">
+              <Button size="lg">
+                Find its next life
+                <ArrowRight className="size-5" />
+              </Button>
+            </Link>
+            <Link href="/scan?sample=1">
+              <Button variant="outline" size="lg">
+                <Sparkles className="size-5" />
+                Try a sample device
+              </Button>
+            </Link>
+          </div>
 
           <div className="mt-16 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
             {NEXT_LIVES.map((life) => (
@@ -60,7 +69,7 @@ export default function LandingPage() {
 
       <footer className="relative z-10 px-6 pb-8 text-center">
         <p className="label-mono text-muted/60">
-          Give every device a next life.
+          Find what&apos;s left. Choose what&apos;s next.
         </p>
       </footer>
     </div>

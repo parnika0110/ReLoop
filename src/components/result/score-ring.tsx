@@ -1,11 +1,21 @@
 "use client";
 
 /**
- * Animated Next Life Score ring.
- * SVG stroke draw + count-up, both driven by mount. Respects
- * prefers-reduced-motion (renders final state immediately).
+ * Next Life Score ring — the number and the arc come straight from `value`,
+ * and the entrance draw is pure CSS.
+ *
+ * INVARIANT: whatever is on screen must always equal `value`.
+ *
+ * This ring used to count up from 0 with requestAnimationFrame plus a settle
+ * setTimeout. Time-driven callbacks can be suspended — background or frozen
+ * tab, throttled/headless preview — and when they were, the effect had done
+ * its job but the frames never arrived: the ring sat at its initial 0 with an
+ * empty arc while the explanation beside it correctly read
+ * "Next Life Score 40/100". Nothing here may depend on a frame or a timer to
+ * be right, so the final state is written on the element during render and the
+ * keyframes only ever animate *towards* that same state.
  */
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 interface ScoreRingProps {
   value: number;
@@ -13,58 +23,36 @@ interface ScoreRingProps {
   size?: number;
 }
 
+const DRAW_DURATION_MS = 1200;
+
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, value));
+}
+
 export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const targetOffset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+  const safeValue = clampScore(value);
+  const targetOffset = circumference * (1 - safeValue / 100);
 
-  const [display, setDisplay] = useState(0);
-  const [offset, setOffset] = useState(circumference);
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (reduceMotion) {
-      // Deferred so state updates never run synchronously inside the effect.
-      const raf = requestAnimationFrame(() => {
-        setDisplay(value);
-        setOffset(targetOffset);
-      });
-      return () => cancelAnimationFrame(raf);
-    }
-
-    // Draw the ring.
-    const drawRaf = requestAnimationFrame(() => setOffset(targetOffset));
-
-    // Count up over 1.1s with an ease-out curve.
-    const duration = 1100;
-    const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(Math.round(eased * value));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(drawRaf);
-      cancelAnimationFrame(raf);
-    };
-  }, [value, targetOffset]);
+  const arcStyle = {
+    // Endpoints for the draw keyframes. Declared as custom properties so the
+    // animation lands exactly on the value the element already carries.
+    "--score-ring-from": `${circumference}px`,
+    "--score-ring-to": `${targetOffset}px`,
+    animation: `score-ring-draw ${DRAW_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+    transition: `stroke-dashoffset ${DRAW_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+    filter: "drop-shadow(0 0 12px rgba(201, 242, 77, 0.35))",
+  } as CSSProperties;
 
   return (
     <div
       className="relative shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Next Life Score ${value} out of 100`}
+      aria-label={`Next Life Score ${safeValue} out of 100`}
     >
       <svg width={size} height={size} className="-rotate-90">
         <defs>
@@ -83,7 +71,8 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
           strokeWidth={strokeWidth}
           stroke="rgba(255,255,255,0.07)"
         />
-        {/* Progress */}
+        {/* Progress: the attribute holds the final value, so a browser that
+            never runs the keyframes still draws a correct arc. */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -93,11 +82,8 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{
-            transition: "stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)",
-            filter: "drop-shadow(0 0 12px rgba(201, 242, 77, 0.35))",
-          }}
+          strokeDashoffset={targetOffset}
+          style={arcStyle}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -105,7 +91,7 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
           className="display tabular-nums text-lime"
           style={{ fontSize: size * 0.3 }}
         >
-          {display}
+          {safeValue}
         </span>
         <span className="label-mono mt-1 text-muted">/ 100</span>
       </div>

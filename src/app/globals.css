@@ -88,8 +88,57 @@ h2 {
   }
 }
 
+/*
+ * Score ring entrance draw.
+ *
+ * Both endpoints are the element's own final state, read from custom
+ * properties set inline: if these keyframes never run (reduced motion,
+ * animations disabled, a page whose JS timers are suspended) the circle's
+ * stroke-dashoffset attribute still describes the real score.
+ */
+@keyframes score-ring-draw {
+  from {
+    stroke-dashoffset: var(--score-ring-from);
+  }
+  to {
+    stroke-dashoffset: var(--score-ring-to);
+  }
+}
+
+/* Attribute bar reveal — same contract: `to` is the value being displayed. */
+@keyframes attribute-bar-in {
+  from {
+    width: var(--attribute-bar-from, 0%);
+  }
+  to {
+    width: var(--attribute-bar-to, 100%);
+  }
+}
+
+/*
+ * Narrative reveal ("YOUR DEVICE ISN'T WASTE YET.").
+ *
+ * Same contract as every entrance here: the base state of the element is
+ * fully visible, so a page that never runs the keyframes (reduced motion,
+ * suspended renderers) still shows the message.
+ */
+@keyframes reveal-wipe {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 -25% 0);
+    opacity: 1;
+  }
+}
+
 @utility animate-fade-up {
   animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-reveal-wipe {
+  animation: reveal-wipe 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @utility animate-pulse-glow {
