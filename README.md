@@ -10,6 +10,8 @@ The AI only supplies **observations**. Every score, recommendation and impact
 estimate is produced by a deterministic, tested engine, so identical input
 always yields identical output and nothing is ever fabricated.
 
+**Live Application**: [https://main.d1cln18prujyan.amplifyapp.com/](https://main.d1cln18prujyan.amplifyapp.com/)
+
 ---
 
 ## Quick start
@@ -171,6 +173,7 @@ the Lambda gets its permissions only from its IAM role.
 | Result retrieval from the browser | ✅ live-verified: the result page fetched the scan from API Gateway and rendered the presigned S3 image |
 | **Bedrock image analysis** | ✅ **live-verified** with Amazon Nova 2 Lite — `global.amazon.nova-2-lite-v1:0` in ap-south-1. The forced `report_device_analysis` tool returns schema-valid output that passes `parseModelPayload` (e.g. `laptop`, condition 40, `screen_damage` on a cracked-screen photo). The Lambda role's IAM is scoped to exactly that inference profile plus `amazon.nova-2-lite-v1:0`. The previously configured Claude Haiku 4.5 profile was unusable from this account (`AccessDeniedException: INVALID_PAYMENT_INSTRUMENT`) |
 | Complete browser → AWS → result scan **with an AI score** | ✅ **verified end-to-end in the browser**: upload → API Gateway 201 → Lambda → S3 + Nova analysis + DynamoDB → result page fetched via API Gateway and rendered the presigned S3 image. Scan `04e7fe8a…` is `status: complete`, `score 52`, `recycle`, and the UI is labelled `BEDROCK · GLOBAL.AMAZON.NOVA-2-LITE-V1:0 · RELOOP-ENGINE-1.0.0` |
+| Live Web Deployment (AWS Amplify) | ✅ live at [main.d1cln18prujyan.amplifyapp.com](https://main.d1cln18prujyan.amplifyapp.com/) |
 | In-memory records | ⚠️ dev only — **lost on server restart**; configure `RELOOP_SCAN_TABLE` for durability |
 
 No feature in this README is claimed to work unless it works.
