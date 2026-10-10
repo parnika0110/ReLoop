@@ -24,47 +24,146 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      {/* Chapter 01: The object interrupts the headline */}
-      <section className="relative min-h-screen flex flex-col justify-center items-center pt-20 pb-32 bg-white">
-        {/* Background typography */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-0 px-4">
-          <h1 className="display text-[clamp(4rem,12vw,14rem)] leading-[0.8] tracking-tighter text-ink/90 text-center uppercase">
-            YOUR OLD
-            <br />
-            TECH ISN&apos;T
-            <br />
-            WASTE YET.
-          </h1>
-        </div>
+      {/* ─── Chapter 01: Hero ─────────────────────────────────────── */}
+      {/*
+        Art Direction: RELOOP — TECHNOLOGY, RECONSIDERED
+        Full-bleed deconstructed hardware canvas:
+        - Image fills the background (object-[78%_center] / object-cover).
+        - Smooth left directional ivory scrim for pristine typographic legibility.
+        - Tighter left margin (px-8 md:px-14 lg:px-20) to eliminate excess dead space on the left.
+        - High-contrast, glassmorphic technical callout chips on the right hardware components.
+      */}
+      <section className="relative pt-[72px] min-h-screen bg-paper text-ink overflow-hidden flex flex-col justify-between">
 
-        {/* Intersecting object overlay */}
-        <div className="relative z-10 w-[90%] max-w-4xl mt-12 md:mt-24 pointer-events-none">
-          <Image
-            src="/images/reloop-hero-isolated.jpg"
-            alt="Worn industrial laptop"
-            width={1200}
-            height={800}
-            className="w-full h-auto object-contain transform -rotate-2 hover:rotate-0 transition-transform duration-1000 ease-out"
-            priority
-          />
+        {/* ── Main Compositional Stage ─────────────────────────────── */}
+        <div className="relative flex-1 min-h-[640px] lg:min-h-[740px] flex items-center">
 
-          {/* Technical annotations overlaid on the image context */}
-          <div className="absolute top-[20%] left-[5%] md:-left-[10%] border-t border-vermilion pt-2 w-32 md:w-48 text-vermilion animate-fade-in z-20">
-            <span className="label-mono block text-[0.6rem] md:text-xs">OBSERVED.WEAR</span>
-            <span className="label-mono block text-[0.6rem] md:text-xs mt-1">SURFACE SCUFFS [CHAS_04]</span>
+          {/* Full-bleed background photograph */}
+          <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
+            <div className="relative w-full h-full">
+              <Image
+                src="/images/reloop-electronics-hero.png"
+                alt="Deconstructed circuit boards, heatsink, microprocessors, and memory modules arranged on cream surface"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-[80%_center] sm:object-[76%_center] lg:object-[72%_center]"
+              />
+              {/* Refined gradient scrim: opaque ivory over text area, smoothly fading out across the image */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to right, rgba(239, 235, 227, 0.98) 0%, rgba(239, 235, 227, 0.95) 28%, rgba(239, 235, 227, 0.75) 42%, rgba(239, 235, 227, 0.25) 58%, rgba(239, 235, 227, 0) 72%)",
+                }}
+              />
+              {/* Subtle top & bottom blending */}
+              <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-paper/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-paper/80 to-transparent" />
+            </div>
           </div>
 
-          <div className="absolute bottom-[30%] right-[5%] md:-right-[10%] border-b border-graphite pb-2 w-32 md:w-48 text-graphite text-right animate-fade-up z-20">
-            <span className="label-mono block text-[0.6rem] md:text-xs">INTERNAL.STATE</span>
-            <span className="label-mono block text-[0.6rem] md:text-xs mt-1">PENDING INSPECTION</span>
+          {/* ── High-Contrast, Legible Technical Callouts on Hardware Components ── */}
+          <div className="hidden lg:block absolute inset-0 z-20 pointer-events-none">
+            {/* Callout 1: Aluminum Heatsink / Thermal Unit */}
+            <div
+              className="absolute"
+              style={{ top: "24%", right: "31%" }}
+            >
+              <div className="inline-flex flex-col items-start px-3 py-1.5 bg-paper/90 backdrop-blur-md border border-graphite/30 shadow-sm">
+                <span className="label-mono text-[0.62rem] text-ink font-bold tracking-wider">
+                  SPECIMEN / THERMAL CORE
+                </span>
+                <span className="label-mono text-[0.56rem] text-graphite/80 tracking-wide mt-0.5">
+                  EXTRUDED AL-FIN HEATSINK
+                </span>
+              </div>
+            </div>
+
+            {/* Callout 2: High-Density Silicon / Logic Board */}
+            <div
+              className="absolute"
+              style={{ top: "54%", right: "9%" }}
+            >
+              <div className="inline-flex flex-col items-start px-3 py-1.5 bg-paper/95 backdrop-blur-md border border-vermilion shadow-md">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-vermilion" />
+                  <span className="label-mono text-[0.64rem] text-vermilion font-bold tracking-wider">
+                    LOGIC BOARD ASSEMBLY
+                  </span>
+                </div>
+                <span className="label-mono text-[0.56rem] text-ink font-medium tracking-wide mt-0.5">
+                  SUBSTRATE &amp; RECOVERABLE TRACES
+                </span>
+              </div>
+            </div>
+
+            {/* Callout 3: Memory Modules */}
+            <div
+              className="absolute"
+              style={{ bottom: "21%", right: "43%" }}
+            >
+              <div className="inline-flex flex-col items-start px-3 py-1.5 bg-paper/90 backdrop-blur-md border border-graphite/30 shadow-sm">
+                <span className="label-mono text-[0.62rem] text-ink font-bold tracking-wider">
+                  DRAM MODULES
+                </span>
+                <span className="label-mono text-[0.56rem] text-graphite/80 tracking-wide mt-0.5">
+                  DISCRETE MEMORY PACKAGES
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* ── Left Editorial Content Stage ── */}
+          <div className="relative z-10 w-full pl-6 md:pl-12 lg:pl-16 pr-6 py-12 md:py-20">
+            <div className="max-w-2xl">
+
+              {/* Sub-label badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-graphite/5 border border-graphite/15 mb-6 md:mb-8">
+                <span className="w-1.5 h-1.5 bg-vermilion rounded-full" />
+                <span className="label-mono text-[0.64rem] text-graphite tracking-widest uppercase font-medium">
+                  CIRCULAR HARDWARE INTELLIGENCE
+                </span>
+              </div>
+
+              {/* Oversized Headline matching the screenshot */}
+              <h1
+                className="display uppercase text-ink leading-[0.84] tracking-tighter mb-8"
+                style={{ fontSize: "clamp(3.8rem, 7.8vw, 7.8rem)" }}
+              >
+                <span className="block">YOUR OLD</span>
+                <span className="block">TECH ISN&apos;T</span>
+                <span className="block">WASTE YET.</span>
+              </h1>
+
+              {/* Manifesto Copy */}
+              <p className="text-graphite/90 text-base md:text-lg leading-relaxed mb-10 max-w-lg font-light">
+                Every decommissioned device represents material investment and engineering craft.
+                We evaluate observable condition, salvage avenues, and circular next steps before anything is written off.
+              </p>
+
+              {/* Primary & Secondary Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4">
+                <Link
+                  href="/scan"
+                  className="bg-vermilion text-paper px-8 py-4 label-mono text-xs uppercase tracking-widest hover:bg-ink transition-colors flex items-center gap-3 shadow-sm hover:shadow-md"
+                >
+                  <span>Assess Your Device</span>
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  href="/scan?sample=1"
+                  className="border border-graphite/30 bg-paper/60 backdrop-blur-xs text-ink px-8 py-4 label-mono text-xs uppercase tracking-widest hover:border-ink hover:bg-paper transition-colors"
+                >
+                  Try a sample scan
+                </Link>
+              </div>
+
+            </div>
+          </div>
+
         </div>
 
-        {/* Scroll prompt */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20">
-          <span className="label-mono text-stone text-[0.65rem] tracking-widest uppercase">Scroll</span>
-          <div className="w-[1px] h-12 bg-graphite/30" />
-        </div>
       </section>
 
       {/* Chapter 02: Waste is not the end */}
