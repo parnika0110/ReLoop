@@ -56,21 +56,21 @@ export default function LandingPage() {
              </div>
 
              {/* Hero Image */}
-             <div className="relative z-10 bg-secondary-paper p-4 md:p-8 aspect-[4/3] md:aspect-auto">
+             <div className="relative z-10 bg-white p-3 shadow-md border border-graphite/20 aspect-[4/3] md:aspect-auto">
                 <Image
                   src="/images/reloop-hero-laptop.jpg"
                   alt="A used laptop waiting for its next life"
                   width={1024}
                   height={1024}
-                  className="w-full h-auto object-cover grayscale contrast-125 transition-transform duration-700 ease-out group-hover:-translate-y-2 group-hover:translate-x-2"
+                  className="w-full h-auto object-cover grayscale contrast-125 transition-transform duration-700 ease-out group-hover:-translate-y-1 group-hover:translate-x-1"
                 />
 
                 {/* Leader line overlay (restrained) */}
-                <div className="absolute right-[20%] top-[40%] hidden md:block">
+                <div className="absolute left-[30%] top-[35%] hidden md:block z-20">
                   <div className="relative">
-                    <div className="absolute top-0 right-0 w-32 h-[1px] bg-vermilion origin-right animate-leader-draw" />
+                    <div className="absolute top-0 right-0 w-24 h-[1px] bg-vermilion origin-right animate-leader-draw" />
                     <div className="absolute -top-1 -right-1 w-2 h-2 rounded-none bg-vermilion" />
-                    <span className="absolute top-2 right-34 label-mono text-vermilion whitespace-nowrap">OBSERVED.WEAR</span>
+                    <span className="absolute top-2 right-28 label-mono text-vermilion whitespace-nowrap">OBSERVED.WEAR</span>
                   </div>
                 </div>
              </div>
