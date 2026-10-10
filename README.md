@@ -36,7 +36,7 @@ npm run start        # serves the production build
 ```bash
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
-npm test             # vitest run  (7 files, 101 tests)
+npm test             # vitest run (15 files, 152 tests)
 npm run build        # production build
 node infra/build.mjs # bundle the analysis Lambda (packaging only)
 ```
@@ -162,7 +162,7 @@ the Lambda gets its permissions only from its IAM role.
 | Claim | Status |
 |---|---|
 | Local flow (upload → analysis → score → result) | ✅ fully working, end-to-end tested (unset `.env.local` to use it) |
-| Unit/integration tests | ✅ 101 tests across 7 files |
+| Unit/integration tests | ✅ 152 tests across 15 files |
 | IaC deployment (`reloop-infra`, ap-south-1) | ✅ deployed and re-deployed from `infra/` only — no manually created resources |
 | S3 image storage | ✅ live-verified: object written with `AES256`, presigned GET returns 200, bucket fully public-blocked (anonymous GET → 403) |
 | DynamoDB persistence | ✅ live-verified: record stored under `SCAN#<id>` / `META` with GSI1, readable via `Query` |
