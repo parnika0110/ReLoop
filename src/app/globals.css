@@ -160,3 +160,40 @@ h2 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Landing Page Scoped Theme */
+.landing-theme {
+  --color-paper: #EFEBE3;
+  --color-secondary-paper: #E4DFD5;
+  --color-ink: #141312;
+  --color-graphite: #2B2926;
+  --color-stone: #6B665D;
+  --color-vermilion-fill: #E8451E;
+  --color-vermilion-text: #B32F10;
+}
+
+@utility bg-paper { background-color: var(--color-paper); }
+@utility bg-secondary-paper { background-color: var(--color-secondary-paper); }
+@utility bg-ink { background-color: var(--color-ink); }
+@utility bg-graphite { background-color: var(--color-graphite); }
+@utility bg-stone { background-color: var(--color-stone); }
+@utility bg-vermilion { background-color: var(--color-vermilion-fill); }
+
+@utility text-paper { color: var(--color-paper); }
+@utility text-secondary-paper { color: var(--color-secondary-paper); }
+@utility text-ink { color: var(--color-ink); }
+@utility text-graphite { color: var(--color-graphite); }
+@utility text-stone { color: var(--color-stone); }
+@utility text-vermilion { color: var(--color-vermilion-text); }
+
+@utility border-graphite { border-color: var(--color-graphite); }
+@utility border-stone { border-color: var(--color-stone); }
+@utility border-vermilion { border-color: var(--color-vermilion-fill); }
+
+@keyframes leader-draw {
+  from { width: 0; }
+  to { width: 8rem; }
+}
+@utility animate-leader-draw {
+  animation: leader-draw 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
