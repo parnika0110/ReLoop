@@ -16,27 +16,27 @@ export const metadata = {
 
 export default function ScanPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between px-6 py-6 md:px-12">
-        <Link href="/" className="label-mono text-bone">
-          RE<span className="text-lime">LOOP</span>
+    <div className="landing-theme flex min-h-screen flex-col bg-paper text-ink selection:bg-vermilion selection:text-paper">
+      <header className="flex items-center justify-between px-6 py-6 md:px-12 border-b border-graphite/20">
+        <Link href="/" className="label-mono text-ink">
+          RE<span className="text-vermilion">LOOP</span>
         </Link>
         <Link
           href="/"
-          className="flex items-center gap-2 text-muted transition-colors hover:text-bone"
+          className="flex items-center gap-2 text-stone transition-colors hover:text-ink"
         >
           <ArrowLeft className="size-4" />
           <span className="label-mono">Home</span>
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col items-center px-6 pb-20">
+      <main className="flex flex-1 flex-col items-center px-6 pt-12 pb-20">
         <div className="mb-10 max-w-xl animate-fade-up text-center">
-          <span className="label-mono text-lime">Step 01 — Capture</span>
-          <h1 className="display mt-4 text-[clamp(2.25rem,6vw,4.5rem)] text-bone">
+          <span className="label-mono text-vermilion">Step 01 — Capture</span>
+          <h1 className="display mt-4 text-[clamp(2.25rem,6vw,4.5rem)] text-ink uppercase tracking-tighter leading-none">
             Scan a device
           </h1>
-          <p className="mt-4 text-muted">
+          <p className="mt-4 text-stone text-lg">
             Upload one clear photo. ReLoop identifies the device, assesses its
             condition, and finds what can still be saved.
           </p>
@@ -45,7 +45,7 @@ export default function ScanPage() {
         {/* useSearchParams (inside the uploader) needs a Suspense boundary. */}
         <Suspense
           fallback={
-            <div className="w-full max-w-xl min-h-[340px] rounded-3xl border-2 border-dashed border-white/15 bg-charcoal/60" />
+            <div className="w-full max-w-xl min-h-[340px] rounded-none border border-dashed border-graphite/30 bg-white" />
           }
         >
           <DeviceUploader />
@@ -59,15 +59,15 @@ export default function ScanPage() {
           {SUPPORTED.map(({ label, icon: Icon }) => (
             <span
               key={label}
-              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 label-mono text-muted"
+              className="flex items-center gap-2 rounded-none border border-graphite/20 bg-white px-4 py-2 label-mono text-stone"
             >
-              <Icon className="size-3.5 text-mint" />
+              <Icon className="size-3.5 text-vermilion" />
               {label}
             </span>
           ))}
         </div>
 
-        <p className="mt-5 max-w-md text-center text-xs leading-relaxed text-muted/70">
+        <p className="mt-8 max-w-md text-center text-xs leading-relaxed text-stone">
           Tips: use even lighting, keep the whole device in frame, and avoid
           heavy glare for the most accurate assessment.
         </p>

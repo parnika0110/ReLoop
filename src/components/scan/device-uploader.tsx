@@ -36,7 +36,7 @@ function Attribute({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <dt className="text-muted">{label}</dt>
-      <dd className="font-mono text-bone">{value}</dd>
+      <dd className="font-mono text-ink">{value}</dd>
     </div>
   );
 }
@@ -214,19 +214,19 @@ export function DeviceUploader() {
 
     return (
       <div className="w-full max-w-xl animate-fade-up">
-        <div className="rounded-2xl border border-lime/25 bg-charcoal/80 p-8 text-center backdrop-blur-sm">
+        <div className="rounded-none border border-graphite/20 bg-white shadow-xl p-8 text-center ">
           {previewUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- local blob preview, deliberately not optimized
             <img
               src={previewUrl}
               alt="Uploaded device"
-              className="mx-auto mb-6 h-44 w-full max-w-sm rounded-2xl border border-white/10 object-cover"
+              className="mx-auto mb-6 h-44 w-full max-w-sm rounded-none border border-graphite/20 object-cover"
             />
           )}
 
           {scan.status === "complete" && analysis && scan.score && scan.recommendation ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-lime">
+              <div className="flex items-center justify-center gap-2 text-vermilion">
                 <CheckCircle2 className="size-5" />
                 <span className="label-mono">Next life found</span>
               </div>
@@ -234,33 +234,33 @@ export function DeviceUploader() {
               {/* Hero: score + recommendation */}
               <div className="mt-6 flex items-end justify-center gap-6">
                 <div className="text-left">
-                  <p className="display text-6xl text-lime">{scan.score.overall}</p>
+                  <p className="display text-6xl text-vermilion">{scan.score.overall}</p>
                   <p className="label-mono mt-1 text-muted">Next Life Score</p>
                 </div>
-                <div className="mb-1 h-12 w-px bg-white/10" />
+                <div className="mb-1 h-12 w-px bg-graphite/10" />
                 <div className="text-left">
-                  <p className="display text-3xl text-bone">
+                  <p className="display text-3xl text-ink">
                     {scan.recommendation.headline}
                   </p>
                   <p className="label-mono mt-1 text-muted">Best next life</p>
                 </div>
               </div>
 
-              <p className="mt-4 text-left text-sm leading-relaxed text-bone/90">
+              <p className="mt-4 text-left text-sm leading-relaxed text-ink/90">
                 {scan.engine?.reasoning}
               </p>
 
               {/* Attribute breakdown with contributions */}
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-5 text-left">
+              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper p-5 text-left">
                 <div className="flex items-center justify-between">
-                  <span className="label-mono text-lime uppercase">
+                  <span className="label-mono text-vermilion uppercase">
                     {analysis.deviceType}
                   </span>
                   <span className="label-mono text-muted">
                     confidence {analysis.confidence}
                   </span>
                 </div>
-                <p className="mt-2 text-lg text-bone">
+                <p className="mt-2 text-lg text-ink">
                   {brandModelLabel(analysis) ?? (
                     <span className="text-muted">Brand not identifiable</span>
                   )}
@@ -270,12 +270,12 @@ export function DeviceUploader() {
                     <div key={c.key} className="flex items-center gap-3 text-sm">
                       <dt className="w-40 shrink-0 text-muted">{c.label}</dt>
                       <dd className="flex flex-1 items-center gap-3">
-                        <span className="font-mono w-8 text-right tabular-nums text-bone">
+                        <span className="font-mono w-8 text-right tabular-nums text-ink">
                           {c.value}
                         </span>
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-graphite/10">
                           <span
-                            className="block h-full rounded-full bg-lime/70"
+                            className="block h-full rounded-none bg-vermilion/70"
                             style={{ width: `${c.value}%` }}
                           />
                         </span>
@@ -288,7 +288,7 @@ export function DeviceUploader() {
                     {analysis.observedIssues.map((issue) => (
                       <li
                         key={issue.id}
-                        className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-muted"
+                        className="rounded-none border border-graphite/20 px-2.5 py-1 text-xs text-muted"
                       >
                         {issue.label}
                       </li>
@@ -312,27 +312,27 @@ export function DeviceUploader() {
             </>
           ) : scan.status === "analyzed" && analysis ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-lime">
+              <div className="flex items-center justify-center gap-2 text-vermilion">
                 <CheckCircle2 className="size-5" />
                 <span className="label-mono">Device analyzed</span>
               </div>
 
               <p className="mt-3 text-sm text-muted">
-                Scan <span className="font-mono text-bone">{scan.scanId.slice(0, 8)}</span>
+                Scan <span className="font-mono text-ink">{scan.scanId.slice(0, 8)}</span>
                 {result.storage === "s3" ? " · stored in S3" : " · local storage"}
                 {!result.persisted && " · record not persisted"}
               </p>
 
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-5 text-left">
+              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper p-5 text-left">
                 <div className="flex items-center justify-between">
-                  <span className="label-mono text-lime uppercase">
+                  <span className="label-mono text-vermilion uppercase">
                     {analysis.deviceType}
                   </span>
                   <span className="label-mono text-muted">
                     confidence {analysis.confidence}
                   </span>
                 </div>
-                <p className="mt-2 text-lg text-bone">
+                <p className="mt-2 text-lg text-ink">
                   {brandModelLabel(analysis) ?? (
                     <span className="text-muted">Brand not identifiable</span>
                   )}
@@ -348,7 +348,7 @@ export function DeviceUploader() {
                     {analysis.observedIssues.map((issue) => (
                       <li
                         key={issue.id}
-                        className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-muted"
+                        className="rounded-none border border-graphite/20 px-2.5 py-1 text-xs text-muted"
                       >
                         {issue.label}
                       </li>
@@ -362,15 +362,15 @@ export function DeviceUploader() {
                 </p>
               </div>
 
-              <p className="mt-4 text-sm text-bone/90">
-                <span className="label-mono mr-2 text-lime">Next</span>
+              <p className="mt-4 text-sm text-ink/90">
+                <span className="label-mono mr-2 text-vermilion">Next</span>
                 ReLoop score and best-next-life recommendation — engine
                 connecting next.
               </p>
             </>
           ) : scan.status === "failed" || scan.status === "insufficient_information" ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-amber-300">
+              <div className="flex items-center justify-center gap-2 text-amber-600">
                 <ScanSearch className="size-5" />
                 <span className="label-mono">
                   {scan.status === "insufficient_information"
@@ -393,12 +393,12 @@ export function DeviceUploader() {
             </>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-2 text-lime">
+              <div className="flex items-center justify-center gap-2 text-vermilion">
                 <CheckCircle2 className="size-5" />
                 <span className="label-mono">Image secured</span>
               </div>
               <p className="mt-3 text-sm text-muted">
-                Scan <span className="font-mono text-bone">{scan.scanId.slice(0, 8)}</span>{" "}
+                Scan <span className="font-mono text-ink">{scan.scanId.slice(0, 8)}</span>{" "}
                 stored — analysis did not run.
               </p>
             </>
@@ -442,15 +442,15 @@ export function DeviceUploader() {
           if (phase !== "uploading") onFileSelected(e.dataTransfer.files);
         }}
         className={cn(
-          "group relative flex min-h-[340px] cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-10 text-center transition-all duration-300",
-          "border-white/15 bg-charcoal/60 backdrop-blur-sm",
-          dragging && "border-lime bg-lime/[0.06] scale-[1.01]",
+          "group relative flex min-h-[340px] cursor-pointer flex-col items-center justify-center rounded-none border-2 border-dashed p-10 text-center transition-all duration-300",
+          "border-graphite/20 bg-white ",
+          dragging && "border-lime bg-vermilion/[0.06] scale-[1.01]",
           phase === "uploading" && "pointer-events-none opacity-70",
         )}
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 [background:radial-gradient(420px_circle_at_var(--x,50%)_0%,rgba(201,242,77,0.07),transparent_65%)]"
+          className="pointer-events-none absolute inset-0 rounded-none opacity-0 transition-opacity duration-300 group-hover:opacity-100 "
         />
 
         {phase === "uploading" ? (
@@ -460,19 +460,19 @@ export function DeviceUploader() {
             className="flex flex-col items-center gap-4"
           >
             {analyzing ? (
-              <ScanSearch className="size-6 animate-pulse-glow text-lime" />
+              <ScanSearch className="size-6 animate-pulse-glow text-vermilion" />
             ) : (
-              <Loader2 className="size-6 animate-spin text-lime" />
+              <Loader2 className="size-6 animate-spin text-vermilion" />
             )}
-            <p className="label-mono text-bone">
+            <p className="label-mono text-ink">
               {analyzing ? "Analyzing" : "Uploading"}
             </p>
-            <div className="h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
+            <div className="h-1.5 w-56 overflow-hidden rounded-none bg-graphite/10">
               {analyzing || progress === 0 ? (
-                <div className="h-full w-2/5 rounded-full bg-lime animate-progress-indeterminate" />
+                <div className="h-full w-2/5 rounded-none bg-vermilion animate-progress-indeterminate" />
               ) : (
                 <div
-                  className="h-full rounded-full bg-lime shadow-[0_0_12px_-2px_var(--color-lime)] transition-[width] duration-300 ease-out"
+                  className="h-full rounded-none bg-vermilion  transition-[width] duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               )}
@@ -483,10 +483,10 @@ export function DeviceUploader() {
           </div>
         ) : (
           <>
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] transition-colors duration-300 group-hover:border-lime/40 group-hover:bg-lime/10">
-              <ImagePlus className="size-7 text-lime" />
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-none border border-graphite/20 bg-graphite/5 transition-colors duration-300 group-hover:border-lime/40 group-hover:bg-vermilion/10">
+              <ImagePlus className="size-7 text-vermilion" />
             </div>
-            <p className="text-lg font-medium text-bone">
+            <p className="text-lg font-medium text-ink">
               Drop a device photo here
             </p>
             <p className="mt-2 text-sm text-muted">
@@ -505,10 +505,10 @@ export function DeviceUploader() {
       {phase === "error" && error && (
         <div
           role="alert"
-          className="mt-4 flex items-start gap-3 rounded-xl border border-red-400/25 bg-red-400/[0.07] p-4"
+          className="mt-4 flex items-start gap-3 rounded-none border border-red-500/20 bg-red-50 p-4"
         >
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-300" />
-          <p className="text-sm text-red-200">{error}</p>
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600" />
+          <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
 
