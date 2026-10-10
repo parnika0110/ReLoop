@@ -63,38 +63,38 @@ export function WasteReveal({
   });
 
   return (
-    <section aria-labelledby="reveal-heading" className="pt-10 md:pt-16">
+    <section aria-labelledby="reveal-heading" className="pt-8 md:pt-14">
       <div className="grid gap-10 md:grid-cols-[1.05fr,0.95fr] md:items-center md:gap-12">
         {/* ── The message ──────────────────────────────────────────── */}
         <div className="min-w-0 animate-fade-up">
-          <p className="label-mono text-lime">
+          <p className="label-mono font-medium text-vermilion">
             Scan {scanId.slice(0, 8)} — analysis complete
           </p>
 
           <h1
             id="reveal-heading"
-            className="display mt-5 text-[clamp(2.6rem,7.5vw,5rem)] text-bone animate-reveal-wipe"
+            className="display mt-4 text-[clamp(2.6rem,7vw,4.75rem)] text-ink animate-reveal-wipe uppercase tracking-tighter leading-none"
           >
             Your device isn’t{" "}
-            <span className="text-lime">waste</span> yet.
+            <span className="text-vermilion">waste</span> yet.
           </h1>
 
-          <p className="display mt-4 text-[clamp(1.4rem,3.6vw,2.2rem)] text-bone/65 animate-reveal-wipe">
+          <p className="mt-4 text-[clamp(1.2rem,2.8vw,1.8rem)] font-light text-stone animate-reveal-wipe">
             {revealSubhead(recommendation)}
           </p>
 
           {/* Identity — the device this is about */}
           <div className="mt-8 min-w-0">
-            <p className="display truncate text-2xl text-bone md:text-3xl">
+            <p className="display truncate text-2xl text-ink md:text-3xl font-medium tracking-tight">
               {deviceName}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge>{analysis.deviceType}</Badge>
               <Badge variant="mint">confidence {analysis.confidence}/100</Badge>
               {isMock && <Badge variant="neutral">mock analysis</Badge>}
-              <span className="label-mono text-muted/60">{date}</span>
+              <span className="label-mono text-stone">{date}</span>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-stone font-mono">
               <span>
                 est. age{" "}
                 {analysis.estimatedAge !== null
@@ -107,10 +107,10 @@ export function WasteReveal({
                 {analysis.observedIssues.map((issue) => (
                   <li
                     key={issue.id}
-                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted"
+                    className="rounded-full border border-graphite/20 bg-white/80 px-3 py-1 text-xs text-stone font-mono"
                   >
                     {issue.label}
-                    <span className="text-muted/50"> · {issue.severity}</span>
+                    <span className="text-stone/60"> · {issue.severity}</span>
                   </li>
                 ))}
               </ul>
@@ -118,33 +118,29 @@ export function WasteReveal({
           </div>
 
           {/* Supporting evidence: the score, deliberately secondary */}
-          <div className="mt-8 flex items-center gap-5 rounded-2xl border border-white/10 bg-charcoal/60 p-4 backdrop-blur-sm">
+          <div className="mt-8 flex items-center gap-5 rounded-2xl border border-graphite/15 bg-white/85 p-5 shadow-2xs backdrop-blur-sm">
             <ScoreRing value={score.overall} size={132} />
             <div className="min-w-0">
-              <p className="label-mono text-muted">Next Life Score</p>
-              <p className="display mt-1.5 truncate text-3xl text-bone">
+              <p className="label-mono font-medium text-stone">Next Life Score</p>
+              <p className="display mt-1 truncate text-3xl font-medium tracking-tight text-ink">
                 {recommendation.headline}
               </p>
-              <p className="mt-1 text-sm text-muted">Best next life</p>
+              <p className="mt-1 text-xs text-stone label-mono">Best next life</p>
             </div>
           </div>
 
           <a
             href="#dna"
-            className="mt-8 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-bone"
+            className="mt-8 inline-flex items-center gap-2 text-sm text-stone transition-colors hover:text-ink"
           >
             What’s left
-            <ArrowDown className="size-4 text-lime" />
+            <ArrowDown className="size-4 text-vermilion" />
           </a>
         </div>
 
         {/* ── The device ───────────────────────────────────────────── */}
         <figure className="relative min-w-0 animate-fade-up">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-4 rounded-[36px] bg-lime/[0.09] blur-3xl"
-          />
-          <div className="relative overflow-hidden rounded-3xl border border-lime/25 bg-charcoal/80">
+          <div className="relative overflow-hidden rounded-2xl border border-graphite/20 bg-white shadow-sm">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- presigned/local URL
               <img
@@ -153,12 +149,12 @@ export function WasteReveal({
                 className="aspect-[4/3] w-full object-cover"
               />
             ) : (
-              <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-muted">
-                <ScanLine className="size-8 text-lime/70" />
+              <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-stone bg-secondary-paper/40">
+                <ScanLine className="size-8 text-vermilion/70" />
                 <span className="label-mono">Photo unavailable</span>
               </div>
             )}
-            <figcaption className="label-mono absolute bottom-0 left-0 right-0 bg-ink/75 px-4 py-2.5 text-muted backdrop-blur-sm">
+            <figcaption className="label-mono absolute bottom-0 left-0 right-0 bg-ink/85 px-4 py-2.5 text-paper backdrop-blur-sm">
               Your device — uploaded {date}
             </figcaption>
           </div>

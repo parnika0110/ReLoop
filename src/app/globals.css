@@ -194,6 +194,28 @@ h2 {
   color: var(--color-stone);
 }
 
+/* Scoped badge contrast for .landing-theme */
+.landing-theme [class*="label-mono"].border-lime\/30,
+.landing-theme span.border-lime\/30 {
+  border-color: rgba(232, 69, 30, 0.3) !important;
+  background-color: rgba(232, 69, 30, 0.08) !important;
+  color: var(--color-vermilion-text) !important;
+}
+
+.landing-theme [class*="label-mono"].border-mint\/20,
+.landing-theme span.border-mint\/20 {
+  border-color: rgba(43, 41, 38, 0.2) !important;
+  background-color: rgba(228, 223, 213, 0.6) !important;
+  color: var(--color-ink) !important;
+}
+
+.landing-theme [class*="label-mono"].border-white\/10,
+.landing-theme span.border-white\/10 {
+  border-color: rgba(43, 41, 38, 0.2) !important;
+  background-color: #ffffff !important;
+  color: var(--color-stone) !important;
+}
+
 @utility bg-paper { background-color: var(--color-paper); }
 @utility bg-secondary-paper { background-color: var(--color-secondary-paper); }
 @utility bg-ink { background-color: var(--color-ink); }

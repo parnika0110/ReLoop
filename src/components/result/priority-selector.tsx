@@ -43,27 +43,27 @@ export function PrioritySelector({
               className={cn(
                 "group flex min-w-40 flex-col items-start gap-1.5 rounded-2xl border px-5 py-4 text-left transition-all duration-200",
                 active
-                  ? "border-lime bg-lime/[0.08] shadow-[0_0_36px_-14px_var(--color-lime)]"
-                  : "border-white/12 bg-white/[0.03] hover:border-lime/40",
+                  ? "border-vermilion bg-white shadow-2xs ring-1 ring-vermilion/30"
+                  : "border-graphite/15 bg-white/70 hover:border-graphite/40",
               )}
             >
               <span className="flex items-center gap-2">
                 <Icon
                   className={cn(
                     "size-4",
-                    active ? "text-lime" : "text-muted group-hover:text-lime/80",
+                    active ? "text-vermilion" : "text-stone group-hover:text-ink",
                   )}
                 />
                 <span
                   className={cn(
-                    "label-mono",
-                    active ? "text-lime" : "text-bone/80",
+                    "label-mono font-medium",
+                    active ? "text-vermilion" : "text-ink",
                   )}
                 >
                   {option.label}
                 </span>
               </span>
-              <span className="text-xs leading-snug text-muted">
+              <span className="text-xs leading-snug text-stone">
                 {option.hint}
               </span>
             </button>
@@ -74,7 +74,7 @@ export function PrioritySelector({
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="flex items-center gap-1.5 self-center rounded-full border border-white/12 px-3.5 py-2 text-xs text-muted transition-colors hover:border-white/30 hover:text-bone"
+            className="flex items-center gap-1.5 self-center rounded-full border border-graphite/20 bg-white px-3.5 py-2 text-xs text-stone transition-colors hover:border-graphite hover:text-ink shadow-2xs"
           >
             <X className="size-3.5" />
             Clear
@@ -82,8 +82,8 @@ export function PrioritySelector({
         )}
       </div>
 
-      <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted/75">
-        <span className="label-mono mt-0.5 shrink-0 text-mint/70">Note</span>
+      <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-stone">
+        <span className="label-mono mt-0.5 shrink-0 text-stone font-medium">Note</span>
         Your priority changes what ReLoop highlights below — never the
         engine&apos;s recommendation, which comes from the measured attributes
         alone.

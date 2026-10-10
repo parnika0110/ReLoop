@@ -44,7 +44,6 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
     "--score-ring-to": `${targetOffset}px`,
     animation: `score-ring-draw ${DRAW_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
     transition: `stroke-dashoffset ${DRAW_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-    filter: "drop-shadow(0 0 12px rgba(201, 242, 77, 0.35))",
   } as CSSProperties;
 
   return (
@@ -57,9 +56,8 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
       <svg width={size} height={size} className="-rotate-90">
         <defs>
           <linearGradient id="scoreRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#c9f24d" />
-            <stop offset="60%" stopColor="#ddf8a3" />
-            <stop offset="100%" stopColor="#d9f2e3" />
+            <stop offset="0%" stopColor="#E8451E" />
+            <stop offset="100%" stopColor="#B32F10" />
           </linearGradient>
         </defs>
         {/* Track */}
@@ -69,7 +67,7 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
           r={radius}
           fill="none"
           strokeWidth={strokeWidth}
-          stroke="rgba(255,255,255,0.07)"
+          stroke="rgba(43,41,38,0.12)"
         />
         {/* Progress: the attribute holds the final value, so a browser that
             never runs the keyframes still draws a correct arc. */}
@@ -88,12 +86,12 @@ export function ScoreRing({ value, size = 260 }: ScoreRingProps) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className="display tabular-nums text-lime"
+          className="display tabular-nums text-ink"
           style={{ fontSize: size * 0.3 }}
         >
           {safeValue}
         </span>
-        <span className="label-mono mt-1 text-muted">/ 100</span>
+        <span className="label-mono mt-1 text-stone">/ 100</span>
       </div>
     </div>
   );

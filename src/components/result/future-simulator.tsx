@@ -117,7 +117,7 @@ const PATHWAY_META: Record<NextLifePath, PathwayMeta> = {
 function FlowArrow() {
   return (
     <div className="flex justify-center py-2" aria-hidden>
-      <ArrowDown className="size-4 text-lime/50" />
+      <ArrowDown className="size-4 text-stone/50" />
     </div>
   );
 }
@@ -155,24 +155,24 @@ export function FutureSimulator({
   const staysInUse = PATHWAY_PROFILE[selected].keepsDeviceInUse;
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-charcoal/50 p-5 backdrop-blur-sm md:p-7">
+    <div className="rounded-3xl border border-graphite/15 bg-white/70 p-6 md:p-8 shadow-xs">
       {/* ── TODAY ─────────────────────────────────────────────────── */}
       <div className="flex items-center gap-4">
-        <span className="label-mono shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-bone/80">
+        <span className="label-mono shrink-0 rounded-full border border-graphite/20 bg-white px-3 py-1.5 text-ink font-medium">
           Today
         </span>
-        <span className="h-px flex-1 bg-white/10" />
-        <span className="shrink-0 text-sm text-muted">One unwanted device</span>
+        <span className="h-px flex-1 bg-graphite/15" />
+        <span className="shrink-0 text-sm text-stone font-mono">One unwanted device</span>
       </div>
       <FlowArrow />
 
       {/* ── YOUR DEVICE ───────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5">
-        <span className="flex items-center gap-2.5 text-sm text-bone">
-          <Cpu className="size-4 shrink-0 text-lime" />
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-graphite/15 bg-white px-5 py-4 shadow-2xs">
+        <span className="flex items-center gap-2.5 text-sm font-medium text-ink">
+          <Cpu className="size-4 shrink-0 text-vermilion" />
           Your {analysis.deviceType}
         </span>
-        <span className="label-mono text-muted">
+        <span className="label-mono text-stone font-mono">
           condition {analysis.condition}/100 · reuse{" "}
           {analysis.reusePotential}/100
         </span>
@@ -180,10 +180,10 @@ export function FutureSimulator({
       <FlowArrow />
 
       {/* ── SIX FUTURES ───────────────────────────────────────────── */}
-      <p className="label-mono mb-3 text-muted/70">Six possible futures</p>
+      <p className="label-mono mb-3 text-stone font-medium">Six possible futures</p>
       {/* Sticky segmented selector on mobile; a wrapping pill row from sm up.
           top-[69px] clears the 69px sticky app header. */}
-      <div className="flex flex-wrap gap-2 max-sm:sticky max-sm:top-[69px] max-sm:z-10 max-sm:-mx-5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:bg-ink max-sm:px-5 max-sm:py-3 max-sm:shadow-[0_1px_0_0_rgba(255,255,255,0.06)] max-sm:[scrollbar-width:none]">
+      <div className="flex flex-wrap gap-2 max-sm:sticky max-sm:top-[69px] max-sm:z-10 max-sm:-mx-5 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:bg-paper max-sm:px-5 max-sm:py-3 max-sm:border-b max-sm:border-graphite/15 max-sm:[scrollbar-width:none]">
         {order.map((path) => {
           const pathwayMeta = PATHWAY_META[path];
           const Icon = pathwayMeta.icon;
@@ -196,26 +196,26 @@ export function FutureSimulator({
               onClick={() => setSelected(path)}
               aria-pressed={active}
               className={cn(
-                "group flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-all duration-200 max-sm:shrink-0",
+                "group flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-200 max-sm:shrink-0",
                 active
-                  ? "border-lime bg-lime text-ink shadow-[0_0_28px_-10px_var(--color-lime)]"
-                  : "border-white/12 bg-white/[0.03] text-muted hover:border-lime/40 hover:text-bone",
+                  ? "border-graphite bg-ink text-paper shadow-2xs"
+                  : "border-graphite/20 bg-white text-ink hover:border-graphite hover:bg-secondary-paper/40",
               )}
             >
-              <Icon className="size-4" />
+              <Icon className={cn("size-4", active ? "text-vermilion" : "text-stone")} />
               {pathwayMeta.label}
               {path === recommendation.path && (
                 <span
                   className={cn(
                     "label-mono rounded-full px-1.5 py-0.5 text-[10px] tracking-[0.1em]",
-                    active ? "bg-ink/15 text-ink" : "bg-lime/15 text-lime",
+                    active ? "bg-vermilion text-paper" : "bg-vermilion/15 text-vermilion",
                   )}
                 >
                   Recommended
                 </span>
               )}
               {fits && !active && (
-                <span className="label-mono rounded-full bg-mint/15 px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-mint">
+                <span className="label-mono rounded-full bg-secondary-paper border border-graphite/20 px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-ink">
                   Fits
                 </span>
               )}
@@ -228,59 +228,59 @@ export function FutureSimulator({
       {/* ── THE RESULTING FUTURE ──────────────────────────────────── */}
       <div key={`${selected}-${priority ?? "none"}`} className="animate-fade-up">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="label-mono text-lime">The resulting future</p>
+          <p className="label-mono font-medium text-vermilion">The resulting future</p>
           <div className="flex flex-wrap gap-2">
             {priorityLabel && matches.includes(selected) && (
-              <span className="label-mono rounded-full border border-mint/30 bg-mint/10 px-2.5 py-1 text-mint">
+              <span className="label-mono rounded-full border border-graphite/20 bg-white px-2.5 py-1 text-ink font-medium shadow-2xs">
                 Fits {priorityLabel}
               </span>
             )}
             {isRecommended && (
-              <span className="label-mono rounded-full border border-lime/30 bg-lime/10 px-2.5 py-1 text-lime">
+              <span className="label-mono rounded-full border border-vermilion/30 bg-vermilion/10 px-2.5 py-1 text-vermilion font-medium">
                 RELOOP&apos;s pick
               </span>
             )}
           </div>
         </div>
 
-        <p className="display mt-2 text-[clamp(2.25rem,6vw,3.25rem)] text-bone">
+        <p className="display mt-2 text-[clamp(2.25rem,6vw,3.25rem)] font-medium text-ink tracking-tight">
           {meta.label}
         </p>
-        <p className="mt-2 text-[15px] text-muted">{meta.blurb}</p>
+        <p className="mt-2 text-[15px] text-stone">{meta.blurb}</p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <p className="label-mono text-mint/80">What happens next</p>
-            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+          <div className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs">
+            <p className="label-mono text-stone font-medium">What happens next</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink">
               {meta.next}
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <p className="label-mono text-amber-300/80">The tradeoff</p>
-            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+          <div className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs">
+            <p className="label-mono text-stone font-medium">The tradeoff</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink">
               {meta.tradeoff}
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <p className="label-mono text-lime/80">Why it might fit</p>
-            <p className="mt-2 text-sm leading-relaxed text-bone/90">
+          <div className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs">
+            <p className="label-mono text-stone font-medium">Why it might fit</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink">
               {meta.why(analysis)}
             </p>
           </div>
         </div>
 
         {isRecommended && (
-          <div className="mt-3 rounded-xl border border-lime/25 bg-lime/[0.05] p-4">
-            <p className="label-mono text-lime">Why RELOOP picked it</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-bone/90">
+          <div className="mt-4 rounded-xl border border-vermilion/30 bg-vermilion/[0.06] p-5">
+            <p className="label-mono font-medium text-vermilion">Why RELOOP picked it</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink">
               {recommendation.rationale}
             </p>
           </div>
         )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
-          <span className="label-mono text-muted/70">Asks of you</span>
-          <span className="text-sm text-bone/90">{EFFORT_NOTES[selected]}</span>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-graphite/15 bg-white px-4 py-3 shadow-2xs">
+          <span className="label-mono font-medium text-stone">Asks of you</span>
+          <span className="text-sm text-ink">{EFFORT_NOTES[selected]}</span>
         </div>
 
         {/* Existing estimator values — labelled, unchanged assumptions. */}
@@ -290,17 +290,17 @@ export function FutureSimulator({
           {estimates.map((e) => (
             <div
               key={e.metricId}
-              className="rounded-xl border border-white/10 bg-mint-deep/40 p-4 transition-colors duration-300 hover:border-lime/25 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
+              className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs transition-colors duration-300 hover:border-graphite/40 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
             >
-              <p className="label-mono text-lime">{e.label}</p>
-              <p className="mt-2 display text-3xl text-bone tabular-nums">
+              <p className="label-mono text-stone font-medium">{e.label}</p>
+              <p className="mt-2 display text-3xl font-medium text-ink tabular-nums">
                 {e.value}
-                <span className="ml-1 text-base font-normal text-muted">
+                <span className="ml-1 text-base font-normal text-stone">
                   {e.unit}
                 </span>
               </p>
               {e.range && (
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-xs text-stone font-mono">
                   likely {e.range.low}–{e.range.high} {e.unit}
                 </p>
               )}
@@ -308,8 +308,8 @@ export function FutureSimulator({
           ))}
         </div>
 
-        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
-          <span className="label-mono mt-0.5 shrink-0 text-mint/80">
+        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-stone">
+          <span className="label-mono mt-0.5 shrink-0 text-stone font-medium">
             Circularity
           </span>
           {staysInUse
@@ -317,8 +317,8 @@ export function FutureSimulator({
             : "This path ends the device's service life; its materials re-enter the supply chain instead of being lost."}
         </p>
 
-        <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted/80">
-          <span className="label-mono mt-0.5 shrink-0 text-amber-300/90">
+        <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-stone">
+          <span className="label-mono mt-0.5 shrink-0 text-stone font-medium">
             Estimate
           </span>
           Model-derived from category assumptions and this device&apos;s

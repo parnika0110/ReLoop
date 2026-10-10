@@ -50,39 +50,39 @@ export function DeviceDna({
             {i < score.contributions.length - 1 && (
               <span
                 aria-hidden
-                className="absolute left-[5px] top-4 bottom-0 w-px bg-white/10"
+                className="absolute left-[5px] top-4 bottom-0 w-px bg-graphite/20"
               />
             )}
             {/* Node */}
             <span
               aria-hidden
-              className="relative z-10 mt-1 flex size-3 shrink-0 items-center justify-center rounded-full bg-ink ring-1 ring-lime/40"
+              className="relative z-10 mt-1 flex size-3 shrink-0 items-center justify-center rounded-full bg-paper ring-1 ring-graphite/30"
             >
               <span
-                className={`size-1.5 rounded-full ${c.value >= 50 ? "bg-lime" : "bg-mint/60"}`}
+                className={`size-1.5 rounded-full ${c.value >= 50 ? "bg-vermilion" : "bg-stone"}`}
               />
             </span>
 
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[17px] text-bone">
+                  <p className="text-[17px] font-medium text-ink">
                     {SHORT_LABELS[c.key]}
-                    <span className="ml-2 hidden text-sm font-normal text-muted/70 sm:inline">
+                    <span className="ml-2 hidden text-sm font-normal text-stone sm:inline">
                       {GLOSSES[c.key]}
                     </span>
                   </p>
-                  <p className="text-sm text-muted sm:hidden">
+                  <p className="text-sm text-stone sm:hidden">
                     {GLOSSES[c.key]}
                   </p>
                 </div>
-                <span className="display shrink-0 text-3xl tabular-nums text-bone">
+                <span className="display shrink-0 text-3xl tabular-nums font-medium text-ink">
                   {c.value}
                 </span>
               </div>
-              <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/[0.07]">
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-graphite/10">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-lime to-mint/80"
+                  className="h-full rounded-full bg-gradient-to-r from-vermilion to-vermilion/70"
                   style={
                     {
                       width: `${c.value}%`,
@@ -99,11 +99,11 @@ export function DeviceDna({
       </ul>
 
       {insight && (
-        <div className="mt-8 rounded-2xl border border-lime/20 bg-lime/[0.05] p-5">
-          <p className="display text-[clamp(1.35rem,3vw,1.75rem)] text-bone">
+        <div className="mt-8 rounded-2xl border border-graphite/20 bg-secondary-paper/70 p-6 shadow-2xs">
+          <p className="display text-[clamp(1.35rem,3vw,1.75rem)] font-medium text-ink">
             {insight.statement}
           </p>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
+          <p className="mt-2 text-sm leading-relaxed text-stone">
             {insight.detail}
           </p>
         </div>

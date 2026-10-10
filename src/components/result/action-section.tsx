@@ -53,21 +53,21 @@ export function ActionSection() {
       {ACTIONS.map(({ id, label, icon: Icon, steps }) => (
         <details
           key={id}
-          className="group rounded-2xl border border-white/10 bg-white/[0.02] transition-colors duration-300 hover:border-lime/30 open:border-lime/30"
+          className="group rounded-2xl border border-graphite/15 bg-white/80 shadow-2xs transition-colors duration-300 hover:border-graphite/40 open:border-graphite/40"
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-lime transition-colors group-open:border-lime/30 group-open:bg-lime/10">
+              <span className="flex size-9 items-center justify-center rounded-xl border border-graphite/15 bg-secondary-paper/60 text-vermilion transition-colors group-open:bg-vermilion/10">
                 <Icon className="size-4" />
               </span>
-              <span className="text-[15px] font-medium text-bone">{label}</span>
+              <span className="text-[15px] font-medium text-ink">{label}</span>
             </span>
-            <ArrowUpRight className="size-4 shrink-0 text-muted transition-transform duration-300 group-open:rotate-90 group-open:text-lime" />
+            <ArrowUpRight className="size-4 shrink-0 text-stone transition-transform duration-300 group-open:rotate-90 group-open:text-vermilion" />
           </summary>
-          <ol className="space-y-3 border-t border-white/[0.07] p-5 pt-4">
+          <ol className="space-y-3 border-t border-graphite/10 p-5 pt-4 bg-secondary-paper/20 rounded-b-2xl">
             {steps.map((step, i) => (
-              <li key={i} className="flex gap-3 text-sm leading-relaxed text-muted">
-                <span className="label-mono mt-0.5 shrink-0 text-lime/70">
+              <li key={i} className="flex gap-3 text-sm leading-relaxed text-stone">
+                <span className="label-mono mt-0.5 shrink-0 text-vermilion font-medium">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 {step}

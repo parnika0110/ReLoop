@@ -21,16 +21,16 @@ export function AttributeBreakdown({ score }: { score: ReLoopScore }) {
         return (
           <div key={c.key} className="group">
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-[15px] text-bone/90">{c.label}</dt>
-              <dd className="font-mono text-lg tabular-nums text-bone">
+              <dt className="text-[15px] font-medium text-ink">{c.label}</dt>
+              <dd className="font-mono text-lg tabular-nums text-ink">
                 {c.value}
               </dd>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-graphite/10">
               <div
                 className={cn(
                   "h-full rounded-full",
-                  isLift ? "bg-lime" : "bg-mint/70",
+                  isLift ? "bg-vermilion" : "bg-stone",
                 )}
                 style={
                   {
