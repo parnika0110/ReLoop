@@ -30,13 +30,13 @@ export default function ScanPage() {
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col items-center px-6 pt-12 pb-20">
-        <div className="mb-10 max-w-xl animate-fade-up text-center">
-          <span className="label-mono text-vermilion">Step 01 — Capture</span>
-          <h1 className="display mt-4 text-[clamp(2.25rem,6vw,4.5rem)] text-ink uppercase tracking-tighter leading-none">
+      <main className="flex flex-1 flex-col items-center justify-start px-6 pt-8 md:pt-12 pb-16 md:pb-24 max-w-4xl mx-auto w-full">
+        <div className="mb-8 max-w-xl animate-fade-up text-center">
+          <span className="label-mono text-vermilion font-medium">Step 01 — Capture</span>
+          <h1 className="display mt-3 text-[clamp(2.25rem,5.5vw,4.25rem)] text-ink uppercase tracking-tighter leading-none">
             Scan a device
           </h1>
-          <p className="mt-4 text-stone text-lg">
+          <p className="mt-3 text-stone text-base md:text-lg max-w-md mx-auto leading-relaxed">
             Upload one clear photo. ReLoop identifies the device, assesses its
             condition, and finds what can still be saved.
           </p>
@@ -45,7 +45,7 @@ export default function ScanPage() {
         {/* useSearchParams (inside the uploader) needs a Suspense boundary. */}
         <Suspense
           fallback={
-            <div className="w-full max-w-xl min-h-[340px] rounded-none border border-dashed border-graphite/30 bg-white" />
+            <div className="w-full max-w-xl min-h-[300px] rounded-none border-2 border-dashed border-graphite/25 bg-white shadow-sm" />
           }
         >
           <DeviceUploader />
@@ -55,11 +55,12 @@ export default function ScanPage() {
           <SampleButton />
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+        {/* Device Categories */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           {SUPPORTED.map(({ label, icon: Icon }) => (
             <span
               key={label}
-              className="flex items-center gap-2 rounded-none border border-graphite/20 bg-white px-4 py-2 label-mono text-stone"
+              className="flex items-center gap-2 rounded-full border border-graphite/20 bg-white/90 shadow-2xs px-4 py-2 label-mono text-ink text-xs font-medium tracking-wider"
             >
               <Icon className="size-3.5 text-vermilion" />
               {label}
@@ -67,7 +68,8 @@ export default function ScanPage() {
           ))}
         </div>
 
-        <p className="mt-8 max-w-md text-center text-xs leading-relaxed text-stone">
+        {/* Tips */}
+        <p className="mt-6 max-w-md text-center text-xs leading-relaxed text-stone px-4">
           Tips: use even lighting, keep the whole device in frame, and avoid
           heavy glare for the most accurate assessment.
         </p>

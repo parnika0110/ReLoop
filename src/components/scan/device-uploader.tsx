@@ -515,7 +515,7 @@ export function DeviceUploader() {
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         {phase === "error" && selectedFile && (
           <Button
-            className="flex-1"
+            className="flex-1 bg-vermilion text-paper hover:bg-ink hover:text-paper shadow-sm"
             onClick={() => void startUpload(selectedFile)}
           >
             <RotateCw className="size-4" />
@@ -524,20 +524,20 @@ export function DeviceUploader() {
         )}
         <Button
           variant="outline"
-          className="flex-1"
+          className="flex-1 bg-white text-ink border-graphite/30 hover:bg-secondary-paper hover:border-ink hover:text-ink shadow-2xs font-medium"
           onClick={() => cameraRef.current?.click()}
           disabled={phase === "uploading"}
         >
-          <Camera className="size-4" />
+          <Camera className="size-4 text-vermilion" />
           Use camera
         </Button>
         <Button
           variant="outline"
-          className="flex-1"
+          className="flex-1 bg-white text-ink border-graphite/30 hover:bg-secondary-paper hover:border-ink hover:text-ink shadow-2xs font-medium"
           onClick={() => inputRef.current?.click()}
           disabled={phase === "uploading"}
         >
-          <UploadCloud className="size-4" />
+          <UploadCloud className="size-4 text-ink" />
           {selectedFile ? "Choose another" : "Choose file"}
         </Button>
       </div>

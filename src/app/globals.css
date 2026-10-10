@@ -161,7 +161,7 @@ h2 {
   }
 }
 
-/* Landing Page Scoped Theme */
+/* Landing Page & Scan Scoped Theme */
 .landing-theme {
   --color-paper: #EFEBE3;
   --color-secondary-paper: #E4DFD5;
@@ -170,6 +170,28 @@ h2 {
   --color-stone: #6B665D;
   --color-vermilion-fill: #E8451E;
   --color-vermilion-text: #B32F10;
+}
+
+/* Scoped button contrast & styling for .landing-theme */
+.landing-theme button:not([class*="bg-vermilion"]):not([class*="bg-ink"]),
+.landing-theme .button-outline {
+  border-color: rgba(43, 41, 38, 0.25);
+  color: var(--color-ink);
+  background-color: #ffffff;
+}
+
+.landing-theme button:not([class*="bg-vermilion"]):not([class*="bg-ink"]):hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-secondary-paper);
+  color: var(--color-ink);
+}
+
+.landing-theme button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(43, 41, 38, 0.15);
+  background-color: rgba(228, 223, 213, 0.5);
+  color: var(--color-stone);
 }
 
 @utility bg-paper { background-color: var(--color-paper); }

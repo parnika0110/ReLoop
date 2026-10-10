@@ -14,9 +14,10 @@ export function SampleButton() {
   return (
     <Button
       variant="outline"
+      className="bg-white text-ink border-graphite/30 hover:bg-secondary-paper hover:border-ink hover:text-ink shadow-2xs font-medium px-6 py-2.5"
       onClick={() => router.push(`/scan?sample=${Date.now()}`)}
     >
-      <Sparkles className="size-4" />
+      <Sparkles className="size-4 text-vermilion" />
       Try a sample device
     </Button>
   );
