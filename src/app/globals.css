@@ -14,6 +14,12 @@
   --color-muted: #9aa196; /* secondary typography */
   --color-mint: #d9f2e3; /* mint highlight */
   --color-mint-deep: #17231d; /* mint-tinted dark surface */
+  /*
+   * Vermilion must live in @theme so that Tailwind v4 can generate opacity
+   * and gradient utilities (from-vermilion, to-vermilion/85, etc.). The
+   * .landing-theme overrides below still set the scoped fill/text split.
+   */
+  --color-vermilion: #E8451E;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;

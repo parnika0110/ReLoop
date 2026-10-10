@@ -8,12 +8,12 @@
  * plain-English gloss, measured value. The interpretation below only renders
  * when the engine's own recommendation supports it (src/lib/potential).
  *
- * Bars carry their final width inline and animate *towards* it, so a page
- * whose animations never run still shows the truth (same contract as the
- * score ring and the breakdown bars).
+ * Animation: bars transition from 0% to their real width when the section
+ * scrolls into view (IntersectionObserver + CSS transition, no @keyframes).
+ * Reduced-motion users see the final widths instantly.
  */
-import type { CSSProperties } from "react";
 import { dnaInsight } from "@/lib/potential";
+import { useRevealOnce } from "@/hooks/use-reveal-once";
 import type { Recommendation, ReLoopScore } from "@/types/score";
 
 const SHORT_LABELS: Record<ReLoopScore["contributions"][number]["key"], string> = {
@@ -41,10 +41,11 @@ export function DeviceDna({
 }) {
   const insight = dnaInsight(score, recommendation);
   const maxScore = Math.max(...score.contributions.map((c) => c.value));
+  const [ref, isVisible] = useRevealOnce<HTMLUListElement>(0.1);
 
   return (
     <div>
-      <ul className="relative">
+      <ul ref={ref} className="relative">
         {score.contributions.map((c, i) => {
           const isHighest = c.value === maxScore;
           return (
@@ -91,19 +92,18 @@ export function DeviceDna({
                 {/* Track with clear contrast against paper */}
                 <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-graphite/15 border border-graphite/10">
                   <div
-                    className={`h-full rounded-full transition-all ${
+                    className={`h-full rounded-full ${
                       isHighest
                         ? "bg-gradient-to-r from-vermilion to-vermilion/85 shadow-2xs"
                         : "bg-graphite/85"
                     }`}
-                    style={
-                      {
-                        width: `${c.value}%`,
-                        "--attribute-bar-from": "0%",
-                        "--attribute-bar-to": `${c.value}%`,
-                        animation: `attribute-bar-in 900ms ease-out ${i * 110}ms both`,
-                      } as CSSProperties
-                    }
+                    style={{
+                      width: isVisible ? `${c.value}%` : "0%",
+                      transitionProperty: "width",
+                      transitionDuration: "900ms",
+                      transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                      transitionDelay: `${i * 110}ms`,
+                    }}
                   />
                 </div>
               </div>

@@ -4,10 +4,14 @@
  * Attribute breakdown — five measured attributes as elegant animated
  * indicators. Values come from the real score contributions (no hardcoding).
  *
- * Each bar's width is rendered from the value during render; the reveal is a
- * CSS animation with a stagger delay. An IntersectionObserver used to gate the
- * width behind a callback, and a callback that never arrives (frozen or
- * throttled page) left every bar at 0% regardless of the score.
+ * Animation strategy (v2 — transition-only):
+ *   • Before the section enters the viewport the fills sit at width 0%.
+ *   • An IntersectionObserver flips `isVisible` once; a CSS `transition`
+ *     on `width` takes each bar from 0% to its real value.
+ *   • Stagger is achieved with per-bar `transition-delay`.
+ *   • No @keyframes animation competes for the `width` property.
+ *   • Reduced-motion: transition-duration is near-zero (global rule) so
+ *     the final width renders instantly.
  */
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
@@ -38,7 +42,7 @@ export function AttributeBreakdown({ score }: { score: ReLoopScore }) {
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-graphite/15 border border-graphite/10">
               <div
                 className={cn(
-                  "h-full rounded-full transition-all",
+                  "h-full rounded-full",
                   isHighest ? "bg-gradient-to-r from-vermilion to-vermilion/85" : "bg-graphite/85",
                 )}
                 style={

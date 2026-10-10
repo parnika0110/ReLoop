@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useRevealOnce } from "@/hooks/use-reveal-once";
 import {
   AlertTriangle,
   ArrowRight,
@@ -46,35 +47,7 @@ function PreviewAttributeBars({
 }: {
   contributions: { key: string; label: string; value: number }[];
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    if (!("IntersectionObserver" in window)) {
-      const raf = requestAnimationFrame(() => setIsVisible(true));
-      return () => cancelAnimationFrame(raf);
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
+  const [containerRef, isVisible] = useRevealOnce<HTMLDivElement>(0.1);
   const maxScore = Math.max(...contributions.map((c) => c.value));
 
   return (
@@ -114,20 +87,13 @@ function PreviewAttributeBars({
                       ? "bg-gradient-to-r from-vermilion to-vermilion/85"
                       : "bg-graphite/85"
                   }`}
-                  style={
-                    isVisible
-                      ? ({
-                          // Width is the reduced-motion / animation-off fallback:
-                          // the @keyframe animation overrides it when it runs.
-                          width: `${c.value}%`,
-                          "--attribute-bar-from": "0%",
-                          "--attribute-bar-to": `${c.value}%`,
-                          animation: `attribute-bar-in 900ms ease-out ${i * 110}ms both`,
-                        } as React.CSSProperties)
-                      : {
-                          width: "0%",
-                        }
-                  }
+                  style={{
+                    width: isVisible ? `${c.value}%` : "0%",
+                    transitionProperty: "width",
+                    transitionDuration: "900ms",
+                    transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                    transitionDelay: `${i * 110}ms`,
+                  }}
                 />
               </div>
             </div>
