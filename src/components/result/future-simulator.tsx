@@ -38,7 +38,7 @@ import {
   rankPriorities,
   type Priority,
 } from "@/lib/priority";
-import { cn } from "@/lib/utils";
+import { cn, formatInr } from "@/lib/utils";
 import type { DeviceAnalysis } from "@/types/analysis";
 import { NEXT_LIFE_PATHS, type NextLifePath, type Recommendation } from "@/types/score";
 
@@ -226,7 +226,7 @@ export function FutureSimulator({
       <FlowArrow />
 
       {/* ── THE RESULTING FUTURE ──────────────────────────────────── */}
-      <div key={`${selected}-${priority ?? "none"}`} className="animate-fade-up">
+      <div key={`${selected}-${priority ?? "none"}`} className="animate-pathway-switch">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="label-mono font-medium text-vermilion">The resulting future</p>
           <div className="flex flex-wrap gap-2">
@@ -287,25 +287,40 @@ export function FutureSimulator({
         <div
           className="mt-4 grid gap-3 sm:grid-cols-3 max-sm:flex max-sm:overflow-x-auto max-sm:snap-x max-sm:snap-mandatory"
         >
-          {estimates.map((e) => (
-            <div
-              key={e.metricId}
-              className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs transition-colors duration-300 hover:border-graphite/40 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
-            >
-              <p className="label-mono text-stone font-medium">{e.label}</p>
-              <p className="mt-2 display text-3xl font-medium text-ink tabular-nums">
-                {e.value}
-                <span className="ml-1 text-base font-normal text-stone">
-                  {e.unit}
-                </span>
-              </p>
-              {e.range && (
-                <p className="mt-1 text-xs text-stone font-mono">
-                  likely {e.range.low}–{e.range.high} {e.unit}
+          {estimates.map((e) => {
+            const isCurrency =
+              e.metricId === "valueRetainedInr" ||
+              e.metricId === "valueRetainedUsd" ||
+              e.unit === "INR";
+            return (
+              <div
+                key={e.metricId}
+                className="rounded-xl border border-graphite/15 bg-white p-5 shadow-2xs transition-colors duration-300 hover:border-graphite/40 max-sm:w-[82%] max-sm:shrink-0 max-sm:snap-center"
+              >
+                <p className="label-mono text-stone font-medium">{e.label}</p>
+                <p className="mt-2 display text-3xl font-medium text-ink tabular-nums">
+                  {isCurrency ? (
+                    formatInr(e.value)
+                  ) : (
+                    <>
+                      {e.value}
+                      <span className="ml-1 text-base font-normal text-stone">
+                        {e.unit}
+                      </span>
+                    </>
+                  )}
                 </p>
-              )}
-            </div>
-          ))}
+                {e.range && (
+                  <p className="mt-1 text-xs text-stone font-mono">
+                    likely{" "}
+                    {isCurrency
+                      ? `${formatInr(e.range.low)}–${formatInr(e.range.high)}`
+                      : `${e.range.low}–${e.range.high} ${e.unit}`}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-stone">

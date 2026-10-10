@@ -63,51 +63,56 @@ export function WasteReveal({
   });
 
   return (
-    <section aria-labelledby="reveal-heading" className="pt-8 md:pt-14">
-      <div className="grid gap-10 md:grid-cols-[1.05fr,0.95fr] md:items-center md:gap-12">
-        {/* ── The message ──────────────────────────────────────────── */}
-        <div className="min-w-0 animate-fade-up">
-          <p className="label-mono font-medium text-vermilion">
-            Scan {scanId.slice(0, 8)} — analysis complete
-          </p>
+    <section aria-labelledby="reveal-heading" className="pt-8 md:pt-12 pb-2">
+      <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:gap-12">
+        {/* ── The message & details ─────────────────────────────────── */}
+        <div className="min-w-0 animate-fade-up flex flex-col justify-center">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-vermilion animate-pulse" />
+            <p className="label-mono font-medium text-vermilion">
+              Scan {scanId.slice(0, 8)} — analysis complete
+            </p>
+          </div>
 
           <h1
             id="reveal-heading"
-            className="display mt-4 text-[clamp(2.6rem,7vw,4.75rem)] text-ink animate-reveal-wipe uppercase tracking-tighter leading-none"
+            className="display mt-3 text-[clamp(2.5rem,6.5vw,4.5rem)] text-ink animate-reveal-wipe uppercase tracking-tighter leading-[0.95]"
           >
             Your device isn’t{" "}
             <span className="text-vermilion">waste</span> yet.
           </h1>
 
-          <p className="mt-4 text-[clamp(1.2rem,2.8vw,1.8rem)] font-light text-stone animate-reveal-wipe">
+          <p className="mt-3 text-[clamp(1.15rem,2.4vw,1.65rem)] font-light text-stone leading-snug animate-reveal-wipe">
             {revealSubhead(recommendation)}
           </p>
 
           {/* Identity — the device this is about */}
-          <div className="mt-8 min-w-0">
-            <p className="display truncate text-2xl text-ink md:text-3xl font-medium tracking-tight">
-              {deviceName}
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge>{analysis.deviceType}</Badge>
-              <Badge variant="mint">confidence {analysis.confidence}/100</Badge>
-              {isMock && <Badge variant="neutral">mock analysis</Badge>}
-              <span className="label-mono text-stone">{date}</span>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-stone font-mono">
-              <span>
+          <div className="mt-6 min-w-0">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="display truncate text-2xl text-ink md:text-3xl font-medium tracking-tight">
+                {deviceName}
+              </p>
+              <span className="font-mono text-sm text-stone">
                 est. age{" "}
                 {analysis.estimatedAge !== null
                   ? `${analysis.estimatedAge} yrs`
                   : "unknown"}
               </span>
             </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge>{analysis.deviceType}</Badge>
+              <Badge variant="mint">confidence {analysis.confidence}/100</Badge>
+              {isMock && <Badge variant="neutral">mock analysis</Badge>}
+              <span className="label-mono text-stone ml-1">{date}</span>
+            </div>
+
             {analysis.observedIssues.length > 0 && (
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="mt-3.5 flex flex-wrap gap-2">
                 {analysis.observedIssues.map((issue) => (
                   <li
                     key={issue.id}
-                    className="rounded-full border border-graphite/20 bg-white/80 px-3 py-1 text-xs text-stone font-mono"
+                    className="rounded-full border border-graphite/20 bg-white/90 px-3 py-1 text-xs text-stone font-mono shadow-2xs"
                   >
                     {issue.label}
                     <span className="text-stone/60"> · {issue.severity}</span>
@@ -117,28 +122,30 @@ export function WasteReveal({
             )}
           </div>
 
-          {/* Supporting evidence: the score, deliberately secondary */}
-          <div className="mt-8 flex items-center gap-5 rounded-2xl border border-graphite/15 bg-white/85 p-5 shadow-2xs backdrop-blur-sm">
-            <ScoreRing value={score.overall} size={132} />
-            <div className="min-w-0">
-              <p className="label-mono font-medium text-stone">Next Life Score</p>
-              <p className="display mt-1 truncate text-3xl font-medium tracking-tight text-ink">
+          {/* Supporting evidence: the score, integrated seamlessly */}
+          <div className="mt-6 flex items-center gap-5 rounded-2xl border border-graphite/20 bg-white p-5 shadow-xs transition-shadow hover:shadow-sm">
+            <ScoreRing value={score.overall} size={118} />
+            <div className="min-w-0 flex-1">
+              <span className="label-mono font-medium text-stone block">Next Life Score</span>
+              <p className="display mt-1 truncate text-2xl sm:text-3xl font-medium tracking-tight text-ink">
                 {recommendation.headline}
               </p>
               <p className="mt-1 text-xs text-stone label-mono">Best next life</p>
             </div>
           </div>
 
-          <a
-            href="#dna"
-            className="mt-8 inline-flex items-center gap-2 text-sm text-stone transition-colors hover:text-ink"
-          >
-            What’s left
-            <ArrowDown className="size-4 text-vermilion" />
-          </a>
+          <div className="mt-6">
+            <a
+              href="#dna"
+              className="inline-flex items-center gap-2 text-xs label-mono text-stone transition-colors hover:text-ink font-medium"
+            >
+              Explore Device DNA
+              <ArrowDown className="size-3.5 text-vermilion" />
+            </a>
+          </div>
         </div>
 
-        {/* ── The device ───────────────────────────────────────────── */}
+        {/* ── The device photo ─────────────────────────────────────── */}
         <figure className="relative min-w-0 animate-fade-up">
           <div className="relative overflow-hidden rounded-2xl border border-graphite/20 bg-white shadow-sm">
             {imageUrl ? (
@@ -146,16 +153,17 @@ export function WasteReveal({
               <img
                 src={imageUrl}
                 alt={`Uploaded ${analysis.deviceType} — the device this result is about`}
-                className="aspect-[4/3] w-full object-cover"
+                className="aspect-[4/3] w-full object-cover max-h-[460px]"
               />
             ) : (
-              <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-stone bg-secondary-paper/40">
+              <div className="flex aspect-[4/3] w-full max-h-[460px] flex-col items-center justify-center gap-3 text-stone bg-secondary-paper/40">
                 <ScanLine className="size-8 text-vermilion/70" />
                 <span className="label-mono">Photo unavailable</span>
               </div>
             )}
-            <figcaption className="label-mono absolute bottom-0 left-0 right-0 bg-ink/85 px-4 py-2.5 text-paper backdrop-blur-sm">
-              Your device — uploaded {date}
+            <figcaption className="label-mono absolute bottom-0 left-0 right-0 bg-ink/90 px-4 py-2.5 text-paper backdrop-blur-sm flex items-center justify-between text-[11px]">
+              <span>Uploaded device photo</span>
+              <span className="text-stone">{date}</span>
             </figcaption>
           </div>
         </figure>

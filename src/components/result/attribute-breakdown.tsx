@@ -14,23 +14,32 @@ import { cn } from "@/lib/utils";
 import type { ReLoopScore } from "@/types/score";
 
 export function AttributeBreakdown({ score }: { score: ReLoopScore }) {
+  const maxScore = Math.max(...score.contributions.map((c) => c.value));
+
   return (
-    <dl className="space-y-5">
+    <dl className="space-y-4">
       {score.contributions.map((c, i) => {
-        const isLift = c.value >= 50;
+        const isHighest = c.value === maxScore;
         return (
           <div key={c.key} className="group">
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-[15px] font-medium text-ink">{c.label}</dt>
-              <dd className="font-mono text-lg tabular-nums text-ink">
+              <dt className="text-[15px] font-medium text-ink flex items-center gap-2">
+                {c.label}
+                {isHighest && (
+                  <span className="label-mono text-[9px] px-1.5 py-0.2 rounded border border-vermilion/30 bg-vermilion/10 text-vermilion font-medium">
+                    Leading
+                  </span>
+                )}
+              </dt>
+              <dd className="font-mono text-base tabular-nums font-medium text-ink">
                 {c.value}
               </dd>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-graphite/10">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-graphite/15 border border-graphite/10">
               <div
                 className={cn(
-                  "h-full rounded-full",
-                  isLift ? "bg-vermilion" : "bg-stone",
+                  "h-full rounded-full transition-all",
+                  isHighest ? "bg-gradient-to-r from-vermilion to-vermilion/85" : "bg-graphite/85",
                 )}
                 style={
                   {

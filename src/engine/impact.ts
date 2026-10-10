@@ -143,7 +143,7 @@ function wasteAvoided(
 }
 
 /**
- * Estimate value retained/recovered (USD) per VALUE_MODEL:
+ * Estimate value retained/recovered (INR) per VALUE_MODEL:
  * - fixed (repair/refurbish): share of category second-hand value
  * - fixed + condition (reuse/donate): as-is utility, scaled by condition
  * - resale (resell): category value × resale potential
@@ -153,10 +153,10 @@ function valueRetained(
   analysis: DeviceAnalysis,
   pathway: NextLifePath,
 ): ImpactEstimate {
-  const usd = SECOND_HAND_VALUE[analysis.deviceType];
+  const inr = SECOND_HAND_VALUE[analysis.deviceType];
   const model = VALUE_MODEL[pathway];
   const assumptions: string[] = [
-    `Second-hand value (${analysis.deviceType}): $${usd.typicalUsd}. ${usd.basis}`,
+    `Second-hand value (${analysis.deviceType}): ₹${inr.typicalInr.toLocaleString("en-IN")}. ${inr.basis}`,
   ];
 
   let raw: number;
@@ -168,19 +168,19 @@ function valueRetained(
       if (model.scaleWithCondition) {
         assumptions.push(`Scaled by current condition ${analysis.condition}/100 → ×${conditionScale.toFixed(2)}.`);
       }
-      raw = usd.typicalUsd * model.factor * conditionScale;
+      raw = inr.typicalInr * model.factor * conditionScale;
       assumptions.push(`Pathway realization factor: ×${model.factor}. ${model.basis}`);
       break;
     }
     case "resale": {
       const resale = Math.max(0, Math.min(100, analysis.resalePotential));
-      raw = usd.typicalUsd * (resale / 100);
+      raw = inr.typicalInr * (resale / 100);
       assumptions.push(`Resale potential (from analysis): ${resale}/100 → ×${(resale / 100).toFixed(2)}. ${model.basis}`);
       break;
     }
     case "material": {
       const recovery = Math.max(0, Math.min(100, analysis.materialRecoveryPotential)) / 100;
-      raw = usd.typicalUsd * model.factor * recovery;
+      raw = inr.typicalInr * model.factor * recovery;
       assumptions.push(
         `Material recovery potential (from analysis): ${Math.round(recovery * 100)}/100; material share of product value: ×${model.factor}. ${model.basis}`,
       );
@@ -192,12 +192,12 @@ function valueRetained(
   return {
     deviceType: analysis.deviceType,
     pathway,
-    metricId: "valueRetainedUsd",
+    metricId: "valueRetainedInr",
     label: "Estimated value retained",
     value,
-    unit: "USD",
+    unit: "INR",
     basis:
-      "Transparent assumption — a model-derived estimate, not a valuation, appraisal, or guaranteed price.",
+      "Transparent assumption — a model-derived estimate based on typical Indian secondary markets, not a valuation, appraisal, or guaranteed price.",
     assumptions: [
       ...assumptions,
       `${IMPACT_MODEL_VERSION} — estimate only.`,

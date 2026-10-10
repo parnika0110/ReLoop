@@ -83,11 +83,13 @@ export function rankPriorities(
     return paths.sort((a, b) => EFFORT_TIER[a] - EFFORT_TIER[b]);
   }
 
-  const metric = priority === "value" ? "valueRetainedUsd" : "lifeExtensionMonths";
   const score = new Map<NextLifePath, number>(
     paths.map((path) => {
       const estimate = estimateImpact(analysis, path).find(
-        (e) => e.metricId === metric,
+        (e) =>
+          priority === "value"
+            ? e.metricId === "valueRetainedInr" || e.metricId === "valueRetainedUsd"
+            : e.metricId === "lifeExtensionMonths",
       );
       return [path, estimate?.value ?? 0];
     }),

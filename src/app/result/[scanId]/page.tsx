@@ -44,6 +44,7 @@ import { ActionSection } from "@/components/result/action-section";
 import { AttributeBreakdown } from "@/components/result/attribute-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatInr } from "@/lib/utils";
 import type { Priority } from "@/lib/priority";
 import type { ScanFetchResponse } from "@/types/scan";
 
@@ -234,7 +235,7 @@ export default function ResultPage({
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-5 pb-24 md:px-8">
+      <main className="mx-auto max-w-5xl px-5 pb-20 md:px-8">
         {/* ── THE REVEAL ───────────────────────────────────────────── */}
         <WasteReveal
           scanId={scan.scanId}
@@ -247,9 +248,9 @@ export default function ResultPage({
         />
 
         {/* ── 1. DEVICE DNA ────────────────────────────────────────── */}
-        <section id="dna" className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section id="dna" className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading step="01 — Understand" title="Device DNA" icon={Dna} />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Five measured attributes — the same numbers the engine scored.
             Nothing here is invented; it is what a single photo can honestly
             say about what remains.
@@ -258,13 +259,13 @@ export default function ResultPage({
         </section>
 
         {/* ── 2. WHAT CAN STILL BE SAVED ───────────────────────────── */}
-        <section className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading
             step="02 — Reveal"
             title="What can still be saved?"
             icon={Lightbulb}
           />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Opportunities grounded in what Nova actually observed — each card
             quotes its evidence, and the limits are shown alongside the claims.
           </p>
@@ -272,13 +273,13 @@ export default function ResultPage({
         </section>
 
         {/* ── 3. WHAT MATTERS TO YOU? ──────────────────────────────── */}
-        <section className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading
             step="03 — Decide"
             title="What matters to you?"
             icon={SlidersHorizontal}
           />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Pick a priority and ReLoop re-ranks the six futures below to match
             it.
           </p>
@@ -286,13 +287,13 @@ export default function ResultPage({
         </section>
 
         {/* ── 4. COMPARE ITS FUTURES ───────────────────────────────── */}
-        <section className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading
             step="04 — Compare"
             title="Compare its futures"
             icon={ArrowDown}
           />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Today, your device, six possible futures — and what each one
             actually means for it.
           </p>
@@ -306,24 +307,24 @@ export default function ResultPage({
         {/* ── 5. THE WINNING PATH ──────────────────────────────────── */}
         <section
           id="winning-path"
-          className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15"
+          className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15"
         >
           <SectionHeading
             step="05 — Recommendation"
             title="The winning path"
             icon={Sparkles}
           />
-          <div className="relative overflow-hidden rounded-3xl border border-graphite/20 bg-white/80 p-7 shadow-xs backdrop-blur-sm md:p-10">
+          <div className="relative overflow-hidden rounded-3xl border border-graphite/20 bg-white p-6 shadow-xs backdrop-blur-sm md:p-9">
             <div className="relative">
-              <p className="label-mono font-medium text-vermilion">Best next life</p>
-              <p className="display mt-2 text-[clamp(2.5rem,7vw,4.5rem)] font-medium text-ink tracking-tight">
+              <span className="label-mono font-medium text-vermilion">Best next life</span>
+              <p className="display mt-2 text-[clamp(2.25rem,6vw,4rem)] font-medium text-ink tracking-tight">
                 {recommendation.headline}
               </p>
-              <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-stone">
+              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-stone">
                 {engine?.reasoning ?? recommendation.rationale}
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
                 <Badge variant="neutral">rule: {recommendation.matchedRuleId}</Badge>
                 <Badge variant="mint">
                   confidence {engine?.confidence ?? analysis.confidence}/100
@@ -332,7 +333,7 @@ export default function ResultPage({
               </div>
 
               {engine && engine.contributingFactors.length > 0 && (
-                <div className="mt-8 grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-3">
+                <div className="mt-7 grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-3">
                   <p className="label-mono font-medium text-stone sm:col-span-2 lg:col-span-3">
                     Contributing factors
                   </p>
@@ -359,9 +360,9 @@ export default function ResultPage({
                 </div>
               )}
 
-              <div className="mt-6 rounded-xl border border-graphite/15 bg-secondary-paper/50 p-5">
+              <div className="mt-6 rounded-xl border border-graphite/15 bg-secondary-paper/50 p-4 sm:p-5">
                 <p className="label-mono font-medium text-stone">Measured facts</p>
-                <p className="mt-2 text-xs leading-relaxed text-stone">
+                <p className="mt-1.5 text-xs leading-relaxed text-stone">
                   The values behind this decision come from AI observation of
                   your photo — factual attributes of this device, not
                   predictions. Device: {deviceName}.
@@ -372,9 +373,9 @@ export default function ResultPage({
         </section>
 
         {/* ── 6. ACTION ────────────────────────────────────────────── */}
-        <section className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading step="06 — Action" title="What to do next" icon={ArrowRight} />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Concrete steps for the paths worth acting on — no marketplace, no
             fake partners.
           </p>
@@ -382,19 +383,19 @@ export default function ResultPage({
         </section>
 
         {/* ── 7. EVIDENCE (below the story, still one scroll away) ─── */}
-        <section className="animate-fade-up pt-16 md:pt-24 border-t border-graphite/15">
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading
             step="07 — Evidence"
             title="Evidence & assumptions"
             icon={Activity}
           />
-          <p className="-mt-2 mb-8 max-w-2xl text-sm leading-relaxed text-stone">
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
             Everything the decision rests on — provenance, the scored
             breakdown, and every estimate with its assumptions.
           </p>
 
           {/* Provenance */}
-          <div className="mb-6 rounded-xl border border-graphite/15 bg-white/70 p-5 shadow-2xs">
+          <div className="mb-6 rounded-xl border border-graphite/15 bg-white/80 p-4 sm:p-5 shadow-2xs">
             <p className="label-mono font-medium text-stone">Provenance</p>
             <div className="mt-2.5 flex flex-wrap gap-x-6 gap-y-1.5 font-mono text-xs text-stone">
               <span>
@@ -415,11 +416,11 @@ export default function ResultPage({
             </div>
           </div>
 
-          <div className="grid gap-10 md:grid-cols-2 md:gap-14">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
             <div>
-              <p className="label-mono mb-5 font-medium text-vermilion">Score breakdown</p>
+              <p className="label-mono mb-4 font-medium text-vermilion">Score breakdown</p>
               <AttributeBreakdown score={score} />
-              <p className="mt-5 text-xs leading-relaxed text-stone">
+              <p className="mt-4 text-xs leading-relaxed text-stone">
                 Each attribute × its weight contributes to the Next Life
                 Score. Weights: condition 25%, repairability 20%, reuse 25%,
                 resale 15%, material recovery 15%.
@@ -427,10 +428,10 @@ export default function ResultPage({
             </div>
 
             <div>
-              <p className="label-mono mb-5 font-medium text-vermilion">
+              <p className="label-mono mb-4 font-medium text-vermilion">
                 Estimated impact — {recommendation.headline}
               </p>
-              <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-600/30 bg-amber-500/[0.08] p-4">
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-600/30 bg-amber-500/[0.08] p-3.5 sm:p-4">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700" />
                 <p className="text-xs leading-relaxed text-amber-950">
                   <strong className="font-medium text-amber-900">
@@ -442,7 +443,8 @@ export default function ResultPage({
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              {/* 3 balanced impact cards: stacked on mobile, 3 equal columns on tablet/desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 {impactEstimates?.map((e) => {
                   const Icon =
                     e.metricId === "lifeExtensionMonths"
@@ -450,29 +452,41 @@ export default function ResultPage({
                       : e.metricId === "wasteAvoidedKg"
                         ? Boxes
                         : CircleDollarSign;
+                  const isCurrency = e.metricId === "valueRetainedInr" || e.metricId === "valueRetainedUsd" || e.unit === "INR";
                   return (
                     <div
                       key={e.metricId}
-                      className="rounded-2xl border border-graphite/15 bg-white p-5 shadow-2xs transition-colors duration-300 hover:border-graphite/40"
+                      className="flex flex-col justify-between rounded-2xl border border-graphite/15 bg-white p-4 sm:p-5 shadow-2xs transition-colors duration-300 hover:border-graphite/40"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-secondary-paper/70 text-vermilion">
-                          <Icon className="size-4" />
-                        </span>
-                        <span className="label-mono rounded-full border border-amber-600/30 bg-amber-500/10 px-2 py-0.5 text-amber-800 font-medium">
-                          Estimated
-                        </span>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex size-8 items-center justify-center rounded-xl bg-secondary-paper/70 text-vermilion">
+                            <Icon className="size-4" />
+                          </span>
+                          <span className="label-mono text-[10px] rounded-full border border-amber-600/30 bg-amber-500/10 px-2 py-0.5 text-amber-800 font-medium">
+                            Estimated
+                          </span>
+                        </div>
+                        <p className="display mt-3 text-3xl sm:text-4xl font-medium text-ink tabular-nums leading-none">
+                          {isCurrency ? (
+                            formatInr(e.value)
+                          ) : (
+                            <>
+                              {e.value}
+                              <span className="ml-1 text-sm font-normal text-stone">
+                                {e.unit}
+                              </span>
+                            </>
+                          )}
+                        </p>
+                        <p className="mt-2 text-xs sm:text-sm font-medium text-ink leading-snug">{e.label}</p>
                       </div>
-                      <p className="display mt-4 text-4xl font-medium text-ink tabular-nums">
-                        {e.value}
-                        <span className="ml-1.5 text-sm font-normal text-stone">
-                          {e.unit}
-                        </span>
-                      </p>
-                      <p className="mt-1.5 text-sm font-medium text-ink">{e.label}</p>
                       {e.range && (
-                        <p className="mt-2 font-mono text-xs text-stone">
-                          plausible {e.range.low}–{e.range.high} {e.unit}
+                        <p className="mt-3 pt-2 border-t border-graphite/10 font-mono text-[11px] text-stone">
+                          plausible{" "}
+                          {isCurrency
+                            ? `${formatInr(e.range.low)}–${formatInr(e.range.high)}`
+                            : `${e.range.low}–${e.range.high} ${e.unit}`}
                         </p>
                       )}
                     </div>
@@ -518,7 +532,7 @@ export default function ResultPage({
         </section>
 
         {/* Footer CTA */}
-        <div className="mt-16 flex flex-col items-center gap-4 rounded-3xl border border-graphite/20 bg-secondary-paper/60 p-8 text-center shadow-xs">
+        <div className="mt-14 flex flex-col items-center gap-4 rounded-3xl border border-graphite/20 bg-secondary-paper/60 p-8 text-center shadow-xs">
           <p className="display text-2xl font-medium text-ink tracking-tight">
             Every device has a next life.
           </p>

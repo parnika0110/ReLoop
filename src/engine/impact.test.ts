@@ -60,7 +60,7 @@ describe("estimateImpact — every device type × every pathway", () => {
         expect(estimates.map((e) => e.metricId)).toEqual([
           "lifeExtensionMonths",
           "wasteAvoidedKg",
-          "valueRetainedUsd",
+          "valueRetainedInr",
         ]);
         for (const e of estimates) assertWellFormed(e, device, pathway);
       });
@@ -145,8 +145,8 @@ describe("value retained", () => {
   it("resell tracks the analysis's resale potential", () => {
     const low = estimateImpact(analysisOf("laptop", { resalePotential: 40 }), "resell")[2];
     const high = estimateImpact(analysisOf("laptop", { resalePotential: 90 }), "resell")[2];
-    expect(low.value).toBe(140); // 350 × 0.40
-    expect(high.value).toBe(315); // 350 × 0.90
+    expect(low.value).toBe(11200); // 28000 × 0.40
+    expect(high.value).toBe(25200); // 28000 × 0.90
     expect(high.value).toBeGreaterThan(low.value);
   });
 
@@ -155,7 +155,7 @@ describe("value retained", () => {
       analysisOf("smartphone", { materialRecoveryPotential: 50 }),
       "recycle",
     );
-    expect(value.value).toBe(15); // 250 × 0.12 × 0.50
+    expect(value.value).toBe(1080); // 18000 × 0.12 × 0.50
     expect(value.assumptions.join(" ")).toContain("material recovery");
   });
 
@@ -169,7 +169,7 @@ describe("value retained", () => {
     expect(estimateImpact(worn, "repair")[2].value).toBe(
       estimateImpact(pristine, "repair")[2].value,
     );
-    expect(estimateImpact(pristine, "repair")[2].value).toBe(140); // 200 × 0.70
+    expect(estimateImpact(pristine, "repair")[2].value).toBe(10500); // 15000 × 0.70
   });
 
   it("recycle realizes the least value of all pathways (fixed factors)", () => {
@@ -187,7 +187,7 @@ describe("value retained", () => {
     expect(estimateImpact(a, "refurbish")[2].value).toBeGreaterThan(
       estimateImpact(a, "repair")[2].value,
     );
-    expect(estimateImpact(a, "refurbish")[2].value).toBe(298); // 350 × 0.85 → 297.5 rounds to 298
+    expect(estimateImpact(a, "refurbish")[2].value).toBe(23800); // 28000 × 0.85
   });
 });
 
@@ -208,8 +208,8 @@ describe("honesty invariants", () => {
 
   it("second-hand value assumptions exist for all device types", () => {
     for (const d of DEVICE_TYPES) {
-      expect(SECOND_HAND_VALUE[d].typicalUsd).toBeGreaterThan(0);
-      expect(SECOND_HAND_VALUE[d].basis).toContain("not a valuation");
+      expect(SECOND_HAND_VALUE[d].typicalInr).toBeGreaterThan(0);
+      expect(SECOND_HAND_VALUE[d].basis).toContain("not an individual appraisal");
     }
   });
 

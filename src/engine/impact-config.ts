@@ -47,24 +47,29 @@ export const DEVICE_MASS: Record<DeviceType, MassAssumption> = {
   },
 };
 
-/** Category-level second-hand value of a WORKING device (USD). */
+/** Category-level second-hand value of a WORKING device in the Indian market (INR). */
 export interface ValueAssumption {
+  typicalInr: number;
+  /** Kept for backwards compatibility with any legacy test/consumer expecting USD. */
   typicalUsd: number;
   basis: string;
 }
 
 export const SECOND_HAND_VALUE: Record<DeviceType, ValueAssumption> = {
   laptop: {
+    typicalInr: 28000,
     typicalUsd: 350,
-    basis: "Assumed typical second-hand value of a working laptop; not a valuation.",
+    basis: "Assumed typical secondary market value for a functional working laptop in India (approx. ₹28,000); not an individual appraisal.",
   },
   smartphone: {
+    typicalInr: 18000,
     typicalUsd: 250,
-    basis: "Assumed typical second-hand value of a working smartphone; not a valuation.",
+    basis: "Assumed typical secondary market value for a functional working smartphone in India (approx. ₹18,000); not an individual appraisal.",
   },
   tablet: {
+    typicalInr: 15000,
     typicalUsd: 200,
-    basis: "Assumed typical second-hand value of a working tablet; not a valuation.",
+    basis: "Assumed typical secondary market value for a functional working tablet in India (approx. ₹15,000); not an individual appraisal.",
   },
 };
 

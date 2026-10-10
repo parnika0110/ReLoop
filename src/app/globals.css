@@ -133,8 +133,23 @@ h2 {
   }
 }
 
+@keyframes pathway-crossfade {
+  from {
+    opacity: 0.65;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @utility animate-fade-up {
   animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-pathway-switch {
+  animation: pathway-crossfade 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @utility animate-reveal-wipe {
@@ -145,8 +160,36 @@ h2 {
   animation: pulse-glow 3.5s ease-in-out infinite;
 }
 
-@utility animate-progress-indeterminate {
-  animation: progress-indeterminate 1.2s ease-in-out infinite;
+@keyframes scan-beam {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 96%;
+    opacity: 0.95;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes scan-frame-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@utility animate-scan-beam {
+  animation: scan-beam 2.4s ease-in-out infinite;
+}
+
+@utility animate-scan-frame {
+  animation: scan-frame-pulse 2s ease-in-out infinite;
 }
 
 /* Keep state changes, drop decorative motion — one rule for the whole app. */

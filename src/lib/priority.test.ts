@@ -48,14 +48,14 @@ describe("rankPriorities", () => {
     const ranked = rankPriorities("value", analysis);
     const values = ranked.map(
       (path) =>
-        estimateImpact(analysis, path).find((e) => e.metricId === "valueRetainedUsd")
+        estimateImpact(analysis, path).find((e) => e.metricId === "valueRetainedInr")
           ?.value ?? -1,
     );
     // Monotonically non-increasing — the ranking IS the existing estimate.
     for (let i = 1; i < values.length; i++) {
       expect(values[i]).toBeLessThanOrEqual(values[i - 1]);
     }
-    expect(ranked[0]).toBe("refurbish"); // 0.85 × $350 beats the rest here
+    expect(ranked[0]).toBe("refurbish"); // 0.85 × ₹28,000 beats the rest here
     expect(ranked.at(-1)).toBe("recycle"); // material share is the smallest
   });
 

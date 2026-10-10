@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Camera, Cpu, Battery, Wrench, ShieldCheck, Recycle } from "lucide-react";
+import { ArrowRight, Camera, Cpu, Battery, Wrench, ShieldCheck, Recycle, RefreshCw, TrendingUp } from "lucide-react";
 
 export const metadata = {
   title: "ReLoop — Your old tech isn't waste yet",
@@ -201,61 +201,105 @@ export default function LandingPage() {
       </section>
 
       {/* Chapter 03: Six futures */}
-      <section className="py-32 px-6 md:px-12 border-t border-graphite/10">
+      <section className="py-20 md:py-24 px-6 md:px-12 border-t border-graphite/10">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-20 md:mb-32 flex flex-col md:flex-row justify-between items-end gap-8">
+          <div className="mb-12 md:mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8">
             <div>
-              <span className="label-mono text-vermilion block mb-6 uppercase">03 / The Futures</span>
-              <h2 className="display text-[clamp(3rem,7vw,6rem)] leading-[0.85] tracking-tighter uppercase max-w-4xl">
+              <span className="label-mono text-vermilion block mb-4 uppercase">03 / The Futures</span>
+              <h2 className="display text-[clamp(2.5rem,5.5vw,5rem)] leading-[0.88] tracking-tighter uppercase max-w-3xl">
                 Compare what comes next.
               </h2>
             </div>
-            <p className="max-w-xs text-stone leading-relaxed">
+            <p className="max-w-sm text-stone text-base leading-relaxed">
               Every device has a different optimal path. We map six distinct possibilities based on hard evidence.
             </p>
           </div>
 
-          {/* Editorial masonry grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
+          {/* Consistent 3-column × 2-row grid (1-col mobile, 2-col tablet, 3-col desktop) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
 
-            <div className="md:col-span-1 border-t-2 border-ink pt-6 flex flex-col">
-              <span className="display text-6xl md:text-8xl text-ink/10 mb-4 leading-none">01</span>
-              <h3 className="display text-3xl mb-4 uppercase">Repair</h3>
-              <p className="text-stone flex-1">Isolate the failure. Replace only what is broken to restore full functionality.</p>
-              <Wrench className="size-8 text-vermilion mt-8" />
+            {/* 01: Repair */}
+            <div className="border-t-2 border-ink pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-paper/40 transition-colors hover:bg-paper/80">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-ink/20 leading-none">01</span>
+                  <Wrench className="size-6 text-vermilion" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-ink">Repair</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  Isolate the failure. Replace only what is broken to restore full functionality.
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-1 border-t-2 border-graphite/20 pt-6 flex flex-col">
-              <span className="display text-6xl md:text-8xl text-ink/10 mb-4 leading-none">02</span>
-              <h3 className="display text-3xl mb-4 uppercase">Refurbish</h3>
-              <p className="text-stone flex-1">Comprehensive overhaul. Upgrade memory, replace batteries, and clean for a second life.</p>
-              <Battery className="size-8 text-ink mt-8" />
+            {/* 02: Refurbish */}
+            <div className="border-t-2 border-graphite/30 pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-paper/40 transition-colors hover:bg-paper/80">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-ink/20 leading-none">02</span>
+                  <Battery className="size-6 text-ink" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-ink">Refurbish</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  Comprehensive overhaul. Upgrade memory, replace batteries, and clean for a second life.
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-1 border-t-2 border-graphite/20 pt-6 flex flex-col">
-              <span className="display text-6xl md:text-8xl text-ink/10 mb-4 leading-none">03</span>
-              <h3 className="display text-3xl mb-4 uppercase">Reuse</h3>
-              <p className="text-stone flex-1">Repurpose the device entirely. Turn an old tablet into a dashboard, or a phone into a camera.</p>
+            {/* 03: Reuse */}
+            <div className="border-t-2 border-graphite/30 pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-paper/40 transition-colors hover:bg-paper/80">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-ink/20 leading-none">03</span>
+                  <RefreshCw className="size-6 text-ink" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-ink">Reuse</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  Repurpose the device entirely. Turn an old tablet into a dashboard, or a phone into a camera.
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-1 md:col-start-2 border-t-2 border-graphite/20 pt-6 flex flex-col">
-              <span className="display text-6xl md:text-8xl text-ink/10 mb-4 leading-none">04</span>
-              <h3 className="display text-3xl mb-4 uppercase">Donate</h3>
-              <p className="text-stone flex-1">Still usable, just not for you. Wipe data and route to organizations that bridge the digital divide.</p>
-              <ShieldCheck className="size-8 text-ink mt-8" />
+            {/* 04: Donate */}
+            <div className="border-t-2 border-graphite/30 pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-paper/40 transition-colors hover:bg-paper/80">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-ink/20 leading-none">04</span>
+                  <ShieldCheck className="size-6 text-ink" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-ink">Donate</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  Still usable, just not for you. Wipe data and route to organizations that bridge the digital divide.
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-1 border-t-2 border-graphite/20 pt-6 flex flex-col">
-              <span className="display text-6xl md:text-8xl text-ink/10 mb-4 leading-none">05</span>
-              <h3 className="display text-3xl mb-4 uppercase">Resell</h3>
-              <p className="text-stone flex-1">Extract residual financial value while keeping the hardware in active circulation.</p>
+            {/* 05: Resell */}
+            <div className="border-t-2 border-graphite/30 pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-paper/40 transition-colors hover:bg-paper/80">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-ink/20 leading-none">05</span>
+                  <TrendingUp className="size-6 text-ink" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-ink">Resell</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  Extract residual financial value while keeping the hardware in active circulation.
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-1 md:col-start-3 border-t-2 border-vermilion pt-6 flex flex-col bg-vermilion/5 p-6 md:p-8 -mt-6">
-              <span className="display text-6xl md:text-8xl text-vermilion/20 mb-4 leading-none">06</span>
-              <h3 className="display text-3xl mb-4 text-vermilion uppercase">Recycle</h3>
-              <p className="text-stone flex-1">The final resort. Safely extract rare earth metals and materials when the object is truly beyond repair.</p>
-              <Recycle className="size-8 text-vermilion mt-8" />
+            {/* 06: Recycle */}
+            <div className="border-t-2 border-vermilion pt-5 pb-6 px-4 md:px-5 flex flex-col justify-between min-h-[220px] bg-vermilion/[0.04] border-b sm:border-b-0 border-vermilion/20 transition-colors hover:bg-vermilion/[0.08]">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="display text-4xl md:text-5xl text-vermilion/30 leading-none">06</span>
+                  <Recycle className="size-6 text-vermilion" />
+                </div>
+                <h3 className="display text-2xl md:text-3xl mb-2.5 uppercase text-vermilion">Recycle</h3>
+                <p className="text-stone text-sm md:text-base leading-relaxed">
+                  The final resort. Safely extract rare earth metals and materials when the object is truly beyond repair.
+                </p>
+              </div>
             </div>
 
           </div>

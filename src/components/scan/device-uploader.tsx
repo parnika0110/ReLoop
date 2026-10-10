@@ -41,6 +41,103 @@ function Attribute({ label, value }: { label: string; value: number }) {
   );
 }
 
+function PreviewAttributeBars({
+  contributions,
+}: {
+  contributions: { key: string; label: string; value: number }[];
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    if (!("IntersectionObserver" in window)) {
+      const raf = requestAnimationFrame(() => setIsVisible(true));
+      return () => cancelAnimationFrame(raf);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const maxScore = Math.max(...contributions.map((c) => c.value));
+
+  return (
+    <div ref={containerRef} className="mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <span className="label-mono text-xs uppercase tracking-wider text-stone font-medium">
+          Measured Attributes
+        </span>
+        <span className="label-mono text-[11px] text-stone">
+          Rating out of 100
+        </span>
+      </div>
+
+      <dl className="space-y-4">
+        {contributions.map((c, i) => {
+          const isHighest = c.value === maxScore;
+          return (
+            <div key={c.key} className="space-y-1.5">
+              <div className="flex items-center justify-between text-sm">
+                <dt className="flex items-center gap-2 font-medium text-ink">
+                  <span>{c.label}</span>
+                  {isHighest && (
+                    <span className="label-mono text-[10px] px-1.5 py-0.2 rounded border border-vermilion/30 bg-vermilion/10 text-vermilion font-medium">
+                      Leading
+                    </span>
+                  )}
+                </dt>
+                <dd className="font-mono tabular-nums text-ink font-semibold">
+                  {c.value}
+                </dd>
+              </div>
+              {/* High contrast track and scroll-triggered animated fill */}
+              <div className="h-2.5 overflow-hidden rounded-none bg-graphite/15 border border-graphite/10">
+                <div
+                  className={`h-full rounded-none ${
+                    isHighest
+                      ? "bg-gradient-to-r from-vermilion to-vermilion/85"
+                      : "bg-graphite/85"
+                  }`}
+                  style={
+                    isVisible
+                      ? ({
+                          // Width is the reduced-motion / animation-off fallback:
+                          // the @keyframe animation overrides it when it runs.
+                          width: `${c.value}%`,
+                          "--attribute-bar-from": "0%",
+                          "--attribute-bar-to": `${c.value}%`,
+                          animation: `attribute-bar-in 900ms ease-out ${i * 110}ms both`,
+                        } as React.CSSProperties)
+                      : {
+                          width: "0%",
+                        }
+                  }
+                />
+              </div>
+            </div>
+          );
+        })}
+      </dl>
+    </div>
+  );
+}
+
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 const ACCEPT_ATTR = "image/jpeg,image/png,image/webp,image/heic,image/heif";
 
@@ -213,98 +310,134 @@ export function DeviceUploader() {
     const isMock = scan.analysisSource?.provider === "mock";
 
     return (
-      <div className="w-full max-w-xl animate-fade-up">
-        <div className="rounded-none border border-graphite/20 bg-white shadow-xl p-8 text-center ">
+      <div className="w-full max-w-2xl md:max-w-3xl animate-fade-up">
+        <div className="rounded-none border border-graphite/20 bg-white shadow-xl p-6 sm:p-8 md:p-10 text-left">
           {previewUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- local blob preview, deliberately not optimized
-            <img
-              src={previewUrl}
-              alt="Uploaded device"
-              className="mx-auto mb-6 h-44 w-full max-w-sm rounded-none border border-graphite/20 object-cover"
-            />
+            <div className="relative mb-8 overflow-hidden rounded-none border border-graphite/20 bg-paper">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview, deliberately not optimized */}
+              <img
+                src={previewUrl}
+                alt="Uploaded device"
+                className="h-52 sm:h-64 md:h-72 w-full object-cover"
+              />
+              <div className="absolute top-3 left-3 bg-paper/90 backdrop-blur-xs px-2.5 py-1 border border-graphite/20 flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-vermilion animate-pulse" />
+                <span className="label-mono text-xs text-ink font-medium">
+                  Scan {scan.scanId.slice(0, 8)}
+                </span>
+              </div>
+            </div>
           )}
 
           {scan.status === "complete" && analysis && scan.score && scan.recommendation ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-vermilion">
-                <CheckCircle2 className="size-5" />
-                <span className="label-mono">Next life found</span>
+              {/* Status Header Badge */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-graphite/15">
+                <div className="flex items-center gap-2 text-vermilion">
+                  <CheckCircle2 className="size-5" />
+                  <span className="label-mono font-medium tracking-wider uppercase">
+                    Next Life Found
+                  </span>
+                </div>
+                <span className="label-mono text-stone text-xs">
+                  Assessment Complete
+                </span>
               </div>
 
-              {/* Hero: score + recommendation */}
-              <div className="mt-6 flex items-end justify-center gap-6">
-                <div className="text-left">
-                  <p className="display text-6xl text-vermilion">{scan.score.overall}</p>
-                  <p className="label-mono mt-1 text-muted">Next Life Score</p>
+              {/* Score + Recommendation Reveal Banner */}
+              <div className="mt-6 grid gap-6 sm:grid-cols-[auto,1fr] sm:items-center sm:divide-x sm:divide-graphite/15 rounded-none border border-graphite/15 bg-paper/60 p-6 md:p-7">
+                <div className="flex flex-col items-start pr-0 sm:pr-8">
+                  <span className="label-mono text-xs text-stone uppercase tracking-wider">
+                    Next Life Score
+                  </span>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <p className="display text-6xl md:text-7xl tabular-nums font-medium text-vermilion tracking-tight">
+                      {scan.score.overall}
+                    </p>
+                    <span className="label-mono text-xs text-stone">/ 100</span>
+                  </div>
                 </div>
-                <div className="mb-1 h-12 w-px bg-graphite/10" />
-                <div className="text-left">
-                  <p className="display text-3xl text-ink">
+
+                <div className="min-w-0 sm:pl-8">
+                  <div className="flex items-center gap-2">
+                    <span className="label-mono text-[11px] uppercase tracking-wider text-stone">
+                      Recommended Pathway
+                    </span>
+                    <span className="label-mono text-[10px] px-1.5 py-0.5 rounded border border-vermilion/30 bg-vermilion/10 text-vermilion uppercase font-medium">
+                      Primary
+                    </span>
+                  </div>
+                  <p className="display mt-1 text-2xl sm:text-3xl text-ink tracking-tight font-medium">
                     {scan.recommendation.headline}
                   </p>
-                  <p className="label-mono mt-1 text-muted">Best next life</p>
+                  <p className="mt-2 text-sm leading-relaxed text-stone">
+                    {scan.engine?.reasoning}
+                  </p>
                 </div>
               </div>
 
-              <p className="mt-4 text-left text-sm leading-relaxed text-ink/90">
-                {scan.engine?.reasoning}
-              </p>
-
-              {/* Attribute breakdown with contributions */}
-              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper p-5 text-left">
-                <div className="flex items-center justify-between">
-                  <span className="label-mono text-vermilion uppercase">
-                    {analysis.deviceType}
-                  </span>
-                  <span className="label-mono text-muted">
-                    confidence {analysis.confidence}
-                  </span>
+              {/* Device Information & Measured DNA Panel */}
+              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper/70 p-6 md:p-7">
+                {/* Identification Bar */}
+                <div className="flex flex-wrap items-baseline justify-between gap-2 pb-4 border-b border-graphite/15">
+                  <div>
+                    <span className="label-mono text-xs uppercase tracking-wider text-vermilion font-medium">
+                      {analysis.deviceType}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-medium text-ink mt-0.5">
+                      {brandModelLabel(analysis) ?? (
+                        <span className="text-stone">Brand not identifiable from photo</span>
+                      )}
+                    </h3>
+                  </div>
+                  <div className="text-right">
+                    <span className="label-mono text-xs text-stone block">
+                      Visual Confidence
+                    </span>
+                    <span className="label-mono text-ink font-medium capitalize">
+                      {analysis.confidence}
+                    </span>
+                  </div>
                 </div>
-                <p className="mt-2 text-lg text-ink">
-                  {brandModelLabel(analysis) ?? (
-                    <span className="text-muted">Brand not identifiable</span>
-                  )}
-                </p>
-                <dl className="mt-4 space-y-2">
-                  {scan.score.contributions.map((c) => (
-                    <div key={c.key} className="flex items-center gap-3 text-sm">
-                      <dt className="w-40 shrink-0 text-muted">{c.label}</dt>
-                      <dd className="flex flex-1 items-center gap-3">
-                        <span className="font-mono w-8 text-right tabular-nums text-ink">
-                          {c.value}
-                        </span>
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-graphite/10">
-                          <span
-                            className="block h-full rounded-none bg-vermilion/70"
-                            style={{ width: `${c.value}%` }}
-                          />
-                        </span>
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+
+                {/* Attribute measurements with enhanced contrast and scroll-triggered fill animation */}
+                <PreviewAttributeBars contributions={scan.score.contributions} />
+
+                {/* Condition observations / tags */}
                 {analysis.observedIssues.length > 0 && (
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {analysis.observedIssues.map((issue) => (
-                      <li
-                        key={issue.id}
-                        className="rounded-none border border-graphite/20 px-2.5 py-1 text-xs text-muted"
-                      >
-                        {issue.label}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-6 pt-5 border-t border-graphite/15">
+                    <span className="label-mono text-xs uppercase tracking-wider text-stone block mb-2">
+                      Condition Observations
+                    </span>
+                    <ul className="flex flex-wrap gap-2">
+                      {analysis.observedIssues.map((issue) => (
+                        <li
+                          key={issue.id}
+                          className="rounded-none border border-graphite/20 bg-paper/60 px-3 py-1 text-xs text-ink font-mono"
+                        >
+                          {issue.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
-                <p className="label-mono mt-4 text-muted/70">
-                  {isMock
-                    ? "Mock analysis — local fixture, not a live model"
-                    : `Bedrock · ${scan.analysisSource?.modelId ?? "model unknown"}`}
-                  {scan.engine ? ` · ${scan.engine.engineVersion}` : ""}
-                </p>
+
+                {/* Model / Provider metadata */}
+                <div className="mt-6 pt-4 border-t border-graphite/15 flex flex-wrap items-center justify-between gap-2">
+                  <p className="label-mono text-[11px] text-stone">
+                    {isMock
+                      ? "Mock analysis — local fixture, not a live model"
+                      : `Bedrock · ${scan.analysisSource?.modelId ?? "model unknown"}`}
+                    {scan.engine ? ` · engine v${scan.engine.engineVersion}` : ""}
+                  </p>
+                  <p className="label-mono text-[11px] text-stone">
+                    Non-invasive visual assessment
+                  </p>
+                </div>
               </div>
 
-              <Link href={`/result/${scan.scanId}`} className="mt-5 block">
-                <Button className="w-full">
+              <Link href={`/result/${scan.scanId}`} className="mt-6 block">
+                <Button className="w-full py-6 text-base">
                   View full result
                   <ArrowRight className="size-4" />
                 </Button>
@@ -312,60 +445,61 @@ export function DeviceUploader() {
             </>
           ) : scan.status === "analyzed" && analysis ? (
             <>
-              <div className="flex items-center justify-center gap-2 text-vermilion">
-                <CheckCircle2 className="size-5" />
-                <span className="label-mono">Device analyzed</span>
+              <div className="flex items-center justify-between pb-4 border-b border-graphite/15">
+                <div className="flex items-center gap-2 text-vermilion">
+                  <CheckCircle2 className="size-5" />
+                  <span className="label-mono font-medium uppercase tracking-wider">
+                    Device Analyzed
+                  </span>
+                </div>
+                <span className="label-mono text-stone text-xs">
+                  Scan {scan.scanId.slice(0, 8)}
+                  {result.storage === "s3" ? " · S3" : " · local"}
+                </span>
               </div>
 
-              <p className="mt-3 text-sm text-muted">
-                Scan <span className="font-mono text-ink">{scan.scanId.slice(0, 8)}</span>
-                {result.storage === "s3" ? " · stored in S3" : " · local storage"}
-                {!result.persisted && " · record not persisted"}
-              </p>
-
-              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper p-5 text-left">
-                <div className="flex items-center justify-between">
-                  <span className="label-mono text-vermilion uppercase">
+              <div className="mt-6 rounded-none border border-graphite/20 bg-secondary-paper/70 p-6 md:p-7">
+                <div className="flex items-center justify-between pb-4 border-b border-graphite/15">
+                  <span className="label-mono text-vermilion uppercase font-medium">
                     {analysis.deviceType}
                   </span>
-                  <span className="label-mono text-muted">
+                  <span className="label-mono text-stone">
                     confidence {analysis.confidence}
                   </span>
                 </div>
-                <p className="mt-2 text-lg text-ink">
+                <p className="mt-3 text-xl font-medium text-ink">
                   {brandModelLabel(analysis) ?? (
-                    <span className="text-muted">Brand not identifiable</span>
+                    <span className="text-stone">Brand not identifiable</span>
                   )}
                 </p>
-                <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                   <Attribute label="Condition" value={analysis.condition} />
                   <Attribute label="Repairability" value={analysis.repairability} />
                   <Attribute label="Reuse potential" value={analysis.reusePotential} />
                   <Attribute label="Resale potential" value={analysis.resalePotential} />
                 </dl>
                 {analysis.observedIssues.length > 0 && (
-                  <ul className="mt-4 flex flex-wrap gap-2">
+                  <ul className="mt-5 flex flex-wrap gap-2 pt-4 border-t border-graphite/15">
                     {analysis.observedIssues.map((issue) => (
                       <li
                         key={issue.id}
-                        className="rounded-none border border-graphite/20 px-2.5 py-1 text-xs text-muted"
+                        className="rounded-none border border-graphite/20 bg-paper/60 px-3 py-1 text-xs text-ink font-mono"
                       >
                         {issue.label}
                       </li>
                     ))}
                   </ul>
                 )}
-                <p className="label-mono mt-4 text-muted/70">
+                <p className="label-mono mt-5 text-[11px] text-stone">
                   {isMock
                     ? "Mock analysis — local fixture, not a live model"
                     : `Bedrock · ${scan.analysisSource?.modelId ?? "model unknown"}`}
                 </p>
               </div>
 
-              <p className="mt-4 text-sm text-ink/90">
-                <span className="label-mono mr-2 text-vermilion">Next</span>
-                ReLoop score and best-next-life recommendation — engine
-                connecting next.
+              <p className="mt-5 text-sm text-stone">
+                <span className="label-mono mr-2 text-vermilion font-medium">Next</span>
+                ReLoop score and best-next-life recommendation — engine connecting next.
               </p>
             </>
           ) : scan.status === "failed" || scan.status === "insufficient_information" ? (
@@ -457,28 +591,55 @@ export function DeviceUploader() {
           <div
             role="status"
             aria-live="polite"
-            className="flex flex-col items-center gap-4"
+            className="flex flex-col items-center gap-4 w-full"
           >
-            {analyzing ? (
-              <ScanSearch className="size-6 animate-pulse-glow text-vermilion" />
-            ) : (
-              <Loader2 className="size-6 animate-spin text-vermilion" />
+            {previewUrl && (
+              <div className="relative mb-2 w-full max-w-xs overflow-hidden border border-graphite/25 bg-secondary-paper/40 shadow-xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="Uploaded device preview"
+                  className="aspect-[4/3] w-full object-cover filter contrast-[0.95]"
+                />
+                {/* Retrained technical scan frame */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 border border-graphite/40 animate-scan-frame"
+                >
+                  <div className="absolute top-1.5 left-1.5 size-3 border-t-2 border-l-2 border-vermilion" />
+                  <div className="absolute top-1.5 right-1.5 size-3 border-t-2 border-r-2 border-vermilion" />
+                  <div className="absolute bottom-1.5 left-1.5 size-3 border-b-2 border-l-2 border-vermilion" />
+                  <div className="absolute bottom-1.5 right-1.5 size-3 border-b-2 border-r-2 border-vermilion" />
+                </div>
+                {/* Scan-line sweep beam */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-vermilion to-transparent shadow-[0_0_8px_rgba(232,69,30,0.8)] animate-scan-beam"
+                />
+              </div>
             )}
-            <p className="label-mono text-ink">
-              {analyzing ? "Analyzing" : "Uploading"}
-            </p>
+            <div className="flex items-center gap-2">
+              {analyzing ? (
+                <ScanSearch className="size-4 animate-pulse-glow text-vermilion" />
+              ) : (
+                <Loader2 className="size-4 animate-spin text-vermilion" />
+              )}
+              <p className="label-mono font-medium text-ink">
+                {analyzing ? "Analyzing Device" : "Uploading Image"}
+              </p>
+            </div>
             <div className="h-1.5 w-56 overflow-hidden rounded-none bg-graphite/10">
               {analyzing || progress === 0 ? (
                 <div className="h-full w-2/5 rounded-none bg-vermilion animate-progress-indeterminate" />
               ) : (
                 <div
-                  className="h-full rounded-none bg-vermilion  transition-[width] duration-300 ease-out"
+                  className="h-full rounded-none bg-vermilion transition-[width] duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               )}
             </div>
-            <p className="font-mono text-xs tabular-nums text-muted">
-              {analyzing ? "identifying device · scoring" : `${progress}%`}
+            <p className="font-mono text-xs tabular-nums text-stone">
+              {analyzing ? "identifying device · scoring attributes" : `${progress}%`}
             </p>
           </div>
         ) : (

@@ -210,6 +210,14 @@ describe("result page — the reported scan (attributes → 40)", () => {
 
     expect(scoreNumber()).toBe("40");
   });
+
+  it("renders estimated retained value in INR format without USD", async () => {
+    await mountPage();
+    const text = container?.textContent ?? "";
+    expect(text).toContain("₹");
+    expect(text).not.toContain("USD");
+    expect(text).not.toContain("$");
+  });
 });
 
 describe("reveal subhead — recommendation-aware copy", () => {

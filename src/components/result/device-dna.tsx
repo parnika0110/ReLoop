@@ -40,67 +40,81 @@ export function DeviceDna({
   recommendation: Recommendation;
 }) {
   const insight = dnaInsight(score, recommendation);
+  const maxScore = Math.max(...score.contributions.map((c) => c.value));
 
   return (
     <div>
       <ul className="relative">
-        {score.contributions.map((c, i) => (
-          <li key={c.key} className="relative flex gap-4 pb-7 last:pb-0">
-            {/* Connector to the next node — the strand */}
-            {i < score.contributions.length - 1 && (
+        {score.contributions.map((c, i) => {
+          const isHighest = c.value === maxScore;
+          return (
+            <li key={c.key} className="relative flex gap-4 pb-6 last:pb-0">
+              {/* Connector to the next node — the strand */}
+              {i < score.contributions.length - 1 && (
+                <span
+                  aria-hidden
+                  className="absolute left-[5px] top-4 bottom-0 w-px bg-graphite/25"
+                />
+              )}
+              {/* Node */}
               <span
                 aria-hidden
-                className="absolute left-[5px] top-4 bottom-0 w-px bg-graphite/20"
-              />
-            )}
-            {/* Node */}
-            <span
-              aria-hidden
-              className="relative z-10 mt-1 flex size-3 shrink-0 items-center justify-center rounded-full bg-paper ring-1 ring-graphite/30"
-            >
-              <span
-                className={`size-1.5 rounded-full ${c.value >= 50 ? "bg-vermilion" : "bg-stone"}`}
-              />
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-[17px] font-medium text-ink">
-                    {SHORT_LABELS[c.key]}
-                    <span className="ml-2 hidden text-sm font-normal text-stone sm:inline">
-                      {GLOSSES[c.key]}
-                    </span>
-                  </p>
-                  <p className="text-sm text-stone sm:hidden">
-                    {GLOSSES[c.key]}
-                  </p>
-                </div>
-                <span className="display shrink-0 text-3xl tabular-nums font-medium text-ink">
-                  {c.value}
-                </span>
-              </div>
-              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-graphite/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-vermilion to-vermilion/70"
-                  style={
-                    {
-                      width: `${c.value}%`,
-                      "--attribute-bar-from": "0%",
-                      "--attribute-bar-to": `${c.value}%`,
-                      animation: `attribute-bar-in 900ms ease-out ${i * 110}ms both`,
-                    } as CSSProperties
-                  }
+                className="relative z-10 mt-1 flex size-3 shrink-0 items-center justify-center rounded-full bg-paper ring-1 ring-graphite/40"
+              >
+                <span
+                  className={`size-1.5 rounded-full ${isHighest ? "bg-vermilion" : "bg-graphite"}`}
                 />
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[17px] font-medium text-ink flex items-center gap-2">
+                      {SHORT_LABELS[c.key]}
+                      {isHighest && (
+                        <span className="label-mono text-[10px] px-1.5 py-0.2 rounded border border-vermilion/30 bg-vermilion/10 text-vermilion font-medium">
+                          Leading
+                        </span>
+                      )}
+                      <span className="ml-1 hidden text-sm font-normal text-stone sm:inline">
+                        {GLOSSES[c.key]}
+                      </span>
+                    </p>
+                    <p className="text-sm text-stone sm:hidden">
+                      {GLOSSES[c.key]}
+                    </p>
+                  </div>
+                  <span className="display shrink-0 text-2xl sm:text-3xl tabular-nums font-medium text-ink">
+                    {c.value}
+                  </span>
+                </div>
+                {/* Track with clear contrast against paper */}
+                <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-graphite/15 border border-graphite/10">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      isHighest
+                        ? "bg-gradient-to-r from-vermilion to-vermilion/85 shadow-2xs"
+                        : "bg-graphite/85"
+                    }`}
+                    style={
+                      {
+                        width: `${c.value}%`,
+                        "--attribute-bar-from": "0%",
+                        "--attribute-bar-to": `${c.value}%`,
+                        animation: `attribute-bar-in 900ms ease-out ${i * 110}ms both`,
+                      } as CSSProperties
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
 
       {insight && (
-        <div className="mt-8 rounded-2xl border border-graphite/20 bg-secondary-paper/70 p-6 shadow-2xs">
-          <p className="display text-[clamp(1.35rem,3vw,1.75rem)] font-medium text-ink">
+        <div className="mt-7 rounded-2xl border border-graphite/20 bg-secondary-paper/70 p-5 md:p-6 shadow-2xs">
+          <p className="display text-[clamp(1.25rem,2.8vw,1.65rem)] font-medium text-ink">
             {insight.statement}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-stone">

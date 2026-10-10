@@ -89,6 +89,7 @@ export interface ImpactEstimate {
   metricId:
     | "lifeExtensionMonths"
     | "wasteAvoidedKg"
+    | "valueRetainedInr"
     | "valueRetainedUsd"
     | "materialRecoveredKg";
   label: string;
