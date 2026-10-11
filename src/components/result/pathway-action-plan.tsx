@@ -9,7 +9,7 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   Wrench,
   RefreshCw,
@@ -60,19 +60,14 @@ interface PathwayActionPlanProps {
 }
 
 function ActionChecklist({
-  scanId,
-  pathway,
   items,
   completedIds,
   onToggle,
 }: {
-  scanId: string;
-  pathway: NextLifePath;
   items: ActionPlanItem[];
   completedIds: Set<string>;
   onToggle: (actionId: string) => void;
 }) {
-  const Icon = PATHWAY_ICONS[pathway];
   const categories = ["prepare", "action", "verify"] as const;
 
   return (
@@ -208,8 +203,6 @@ export function PathwayActionPlan({
           )}
         </div>
         <ActionChecklist
-          scanId={scanId}
-          pathway={recommendedPathway}
           items={primaryItems}
           completedIds={completedIds}
           onToggle={handleToggle}
@@ -252,8 +245,6 @@ export function PathwayActionPlan({
               </summary>
               <div className="border-t border-graphite/10 p-4">
                 <ActionChecklist
-                  scanId={scanId}
-                  pathway={pathway}
                   items={altItems}
                   completedIds={completedIds}
                   onToggle={handleToggle}

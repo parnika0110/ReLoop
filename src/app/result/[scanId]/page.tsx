@@ -29,6 +29,7 @@ import {
   CircleDollarSign,
   ClipboardList,
   Dna,
+  Download,
   Lightbulb,
   MapPin,
   RotateCw,
@@ -39,7 +40,9 @@ import {
 import { getScan, ApiError } from "@/lib/api/client";
 import { deviceDisplayName } from "@/lib/brand";
 import { classifyAssessmentEvidence } from "@/lib/evidence";
+import { resolveImpactEstimates } from "@/engine/impact";
 import { saveDeviceToLibrary } from "@/lib/passport";
+import { downloadDecisionReceipt } from "@/lib/decision-receipt";
 import { WasteReveal } from "@/components/result/waste-reveal";
 import { DeviceDna } from "@/components/result/device-dna";
 import { SavedSection } from "@/components/result/saved-section";
@@ -52,7 +55,7 @@ import { DestinationFinder } from "@/components/result/destination-finder";
 import { AttributeBreakdown } from "@/components/result/attribute-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatInr, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import type { Priority } from "@/lib/priority";
 import type { ScanFetchResponse } from "@/types/scan";
 
@@ -229,8 +232,16 @@ export default function ResultPage({
   // Classify evidence from the assessment for the evidence breakdown
   const evidence = classifyAssessmentEvidence(analysis);
 
+  // Safely resolve impact estimates: preserve existing INR, safely derive transparent
+  // INR for legacy USD scans without relabeling, and handle missing attributes gracefully.
+  const currentImpactEstimates = resolveImpactEstimates(
+    impactEstimates,
+    analysis,
+    recommendation.path
+  );
+
   // Extract estimated value for the repair calculator (if available)
-  const valueEstimate = impactEstimates?.find(
+  const valueEstimate = currentImpactEstimates?.find(
     (e) => e.metricId === "valueRetainedInr" || e.metricId === "valueRetainedUsd"
   );
 
@@ -251,6 +262,23 @@ export default function ResultPage({
             <span className="label-mono hidden text-stone font-mono sm:inline">
               {scan.scanId.slice(0, 8)}
             </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                downloadDecisionReceipt({
+                  scanId: scan.scanId,
+                  createdAt: scan.createdAt,
+                  analysis,
+                  score,
+                  recommendation,
+                });
+              }}
+              title="Download Circular Economy Decision Receipt"
+            >
+              <Download className="size-3.5 text-stone" />
+              Receipt
+            </Button>
             <Link href="/scan">
               <Button variant="outline" size="sm">
                 <ScanLine className="size-3.5 text-vermilion" />
@@ -521,7 +549,7 @@ export default function ResultPage({
 
               {/* 3 balanced impact cards: stacked on mobile, 3 equal columns on tablet/desktop */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                {impactEstimates?.map((e) => {
+                {currentImpactEstimates?.map((e) => {
                   const Icon =
                     e.metricId === "lifeExtensionMonths"
                       ? CalendarClock
@@ -574,7 +602,7 @@ export default function ResultPage({
                 })}
               </div>
 
-              {impactEstimates && impactEstimates.length > 0 && (
+              {currentImpactEstimates && currentImpactEstimates.length > 0 && (
                 <details className="group mt-4 rounded-xl border border-graphite/15 bg-white/70 shadow-2xs">
                   <summary className="flex cursor-pointer list-none items-center justify-between p-4 text-sm text-stone font-medium [&::-webkit-details-marker]:hidden">
                     <span className="label-mono">
@@ -585,7 +613,7 @@ export default function ResultPage({
                     </span>
                   </summary>
                   <div className="space-y-3 border-t border-graphite/10 p-4 pt-3 bg-secondary-paper/20 rounded-b-xl">
-                    {impactEstimates.map((e) => (
+                    {currentImpactEstimates.map((e) => (
                       <div key={e.metricId}>
                         <p className="text-sm font-medium text-ink">{e.label}</p>
                         <p className="mt-1 text-xs leading-relaxed text-stone">

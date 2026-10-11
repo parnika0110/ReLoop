@@ -4,7 +4,7 @@
  * and the documented relationship between pathways.
  */
 import { describe, expect, it } from "vitest";
-import { estimateImpact } from "@/engine/impact";
+import { estimateImpact, resolveImpactEstimates } from "@/engine/impact";
 import {
   DEVICE_MASS,
   SECOND_HAND_VALUE,
@@ -292,5 +292,107 @@ describe("currency audit & backward compatibility", () => {
     // Invalid / non-finite values return default symbols cleanly
     expect(formatCurrency(NaN, "valueRetainedInr", "INR")).toBe("₹0");
     expect(formatCurrency(NaN, "valueRetainedUsd", "USD")).toBe("$0");
+  });
+
+  describe("resolveImpactEstimates", () => {
+    const laptopAnalysis = analysisOf("laptop", { condition: 20, materialRecoveryPotential: 85, resalePotential: 15, repairability: 60 });
+
+    it("preserves existing INR estimates unmodified byte-for-byte", () => {
+      const existingInr = estimateImpact(laptopAnalysis, "recycle");
+      const resolved = resolveImpactEstimates(existingInr, laptopAnalysis, "recycle");
+      expect(resolved).toEqual(existingInr);
+      expect(resolved.find((e) => e.metricId === "valueRetainedInr")?.unit).toBe("INR");
+    });
+
+    it("safely re-derives transparent INR for legacy USD scans while preserving non-currency metrics", () => {
+      const legacyUsdEstimates: ImpactEstimate[] = [
+        {
+          deviceType: "laptop",
+          pathway: "recycle",
+          metricId: "lifeExtensionMonths",
+          label: "Potential useful-life extension",
+          value: 0,
+          unit: "months",
+          basis: "Recycling ends device life",
+          assumptions: ["Base extension: 0 months"],
+        },
+        {
+          deviceType: "laptop",
+          pathway: "recycle",
+          metricId: "wasteAvoidedKg",
+          label: "Potential waste avoided",
+          value: 1.19,
+          unit: "kg",
+          basis: "Recycling diverts recoverable fraction",
+          assumptions: ["Assumed mass: 1.4 kg"],
+        },
+        {
+          deviceType: "laptop",
+          pathway: "recycle",
+          metricId: "valueRetainedUsd",
+          label: "Estimated value retained",
+          value: 36,
+          unit: "USD",
+          basis: "Model-derived estimate",
+          assumptions: ["Second-hand value: $350"],
+        },
+      ];
+
+      const resolved = resolveImpactEstimates(legacyUsdEstimates, laptopAnalysis, "recycle");
+      expect(resolved.length).toBe(3);
+
+      // Preserves original non-currency metrics
+      expect(resolved[0].metricId).toBe("lifeExtensionMonths");
+      expect(resolved[0].value).toBe(0);
+      expect(resolved[1].metricId).toBe("wasteAvoidedKg");
+      expect(resolved[1].value).toBe(1.19);
+
+      // Value retained safely converted to INR via deterministic engine
+      const val = resolved[2];
+      expect(val.metricId).toBe("valueRetainedInr");
+      expect(val.unit).toBe("INR");
+      expect(val.value).toBe(2856); // 28000 * 0.12 * 0.85
+      // Clearly notes re-derivation in basis and assumptions, retaining historical note
+      expect(val.basis).toContain("Derived for Indian market");
+      expect(val.basis).toContain("original archive was USD 36");
+      expect(val.assumptions.join(" ")).toContain("Historical record archived with legacy USD value ($36)");
+    });
+
+    it("does not invent INR values when assessment data is missing or incomplete", () => {
+      const legacyUsdEstimates: ImpactEstimate[] = [
+        {
+          deviceType: "laptop",
+          pathway: "recycle",
+          metricId: "wasteAvoidedKg",
+          label: "Potential waste avoided",
+          value: 1.19,
+          unit: "kg",
+          basis: "test",
+          assumptions: [],
+        },
+        {
+          deviceType: "laptop",
+          pathway: "recycle",
+          metricId: "valueRetainedUsd",
+          label: "Estimated value retained",
+          value: 36,
+          unit: "USD",
+          basis: "test",
+          assumptions: [],
+        },
+      ];
+
+      // Missing analysis
+      const resolvedMissing = resolveImpactEstimates(legacyUsdEstimates, null, "recycle");
+      expect(resolvedMissing.length).toBe(1);
+      expect(resolvedMissing[0].metricId).toBe("wasteAvoidedKg");
+      expect(resolvedMissing.some((e) => e.metricId === "valueRetainedInr")).toBe(false);
+    });
+
+    it("derives complete fresh INR estimates when no impactEstimates exist at all", () => {
+      const resolved = resolveImpactEstimates(null, laptopAnalysis, "recycle");
+      expect(resolved.length).toBe(3);
+      expect(resolved.some((e) => e.metricId === "valueRetainedInr" && e.unit === "INR")).toBe(true);
+    });
   });
 });

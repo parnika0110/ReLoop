@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getActionPlanForPathway, PATHWAY_ACTION_TEMPLATES } from "./action-plan";
+import { getActionPlanForPathway } from "./action-plan";
 import { NEXT_LIFE_PATHS } from "@/types/score";
 
 describe("getActionPlanForPathway", () => {

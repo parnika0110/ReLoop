@@ -221,4 +221,57 @@ export function estimateImpact(
   ];
 }
 
+/**
+ * Safely resolves impact estimates for display:
+ * 1. If estimates already exist and have INR valueRetainedInr, returns them unmodified.
+ * 2. If estimates exist but valueRetained is in legacy USD (e.g. historical scans):
+ *    - Preserves non-currency metrics (lifeExtensionMonths, wasteAvoidedKg) as-is.
+ *    - If device analysis is available, derives a transparent INR estimate using the
+ *      deterministic engine and explicitly notes the re-derivation in its assumptions and basis,
+ *      without relabeling or currency exchange guessing.
+ *    - If analysis is not available or incomplete, leaves valueRetained as unavailable for INR
+ *      rather than inventing an arbitrary number.
+ * 3. If no estimates exist at all, falls back to estimateImpact if analysis is available.
+ */
+export function resolveImpactEstimates(
+  estimates: ImpactEstimate[] | undefined | null,
+  analysis: DeviceAnalysis | undefined | null,
+  pathway: NextLifePath,
+): ImpactEstimate[] {
+  // If already full INR, keep existing record byte-for-byte
+  if (estimates && estimates.some((e) => e.metricId === "valueRetainedInr" || e.unit === "INR")) {
+    return estimates;
+  }
+
+  // If estimates have legacy USD
+  if (estimates && estimates.length > 0) {
+    if (analysis && analysis.deviceType) {
+      const derivedInr = valueRetained(analysis, pathway);
+      return estimates.map((e) => {
+        if (e.metricId === "valueRetainedUsd" || e.unit === "USD" || e.unit === "$") {
+          return {
+            ...derivedInr,
+            basis: `${derivedInr.basis} (Derived for Indian market from original visual assessment; original archive was USD ${e.value}).`,
+            assumptions: [
+              ...derivedInr.assumptions,
+              `Historical record archived with legacy USD value ($${e.value}); recalculated in INR via deterministic engine.`,
+            ],
+          };
+        }
+        return e;
+      });
+    }
+
+    // Analysis is missing/incomplete: keep non-currency metrics, but do NOT invent an INR value.
+    return estimates.filter((e) => e.metricId !== "valueRetainedUsd" && e.unit !== "USD" && e.unit !== "$");
+  }
+
+  // No estimates present at all
+  if (analysis && analysis.deviceType) {
+    return estimateImpact(analysis, pathway);
+  }
+
+  return [];
+}
+
 export { IMPACT_MODEL_VERSION } from "@/engine/impact-config";

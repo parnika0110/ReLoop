@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterDestinations, INDIAN_DESTINATIONS } from "./destinations";
+import { filterDestinations } from "./destinations";
 
 describe("filterDestinations", () => {
   it("filters accurately by category without fabricating entries", () => {
