@@ -14,6 +14,22 @@ import type { Recommendation, ReLoopScore } from "@/types/score";
 import type { NextLifePath } from "@/types/score";
 import { deviceDisplayName } from "@/lib/brand";
 
+/** Escape HTML entities to prevent XSS in generated HTML receipts. */
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** Safely coerce a possibly-undefined value to a string. */
+function safeStr(val: unknown): string {
+  if (val === null || val === undefined) return "Unknown";
+  return String(val);
+}
+
 export interface DecisionReceiptData {
   /** Scan identifier */
   scanId: string;
@@ -45,23 +61,13 @@ export interface DecisionReceiptData {
 }
 
 export function generateDecisionReceiptText(data: DecisionReceiptData): string {
-  const name = escHtml(deviceDisplayName(analysis));
+  const { scanId, createdAt, analysis, score, recommendation, chosenPathway, completedActions = [] } = data;
+  const name = deviceDisplayName(analysis);
   const dateStr = new Date(createdAt).toLocaleDateString("en-IN", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
-
-  // Safely escape dynamic strings used in HTML
-  const escapedName = safeStr(name);
-  const escapedDeviceType = safeStr(analysis.deviceType?.toUpperCase());
-  const escapedEstimatedAge = analysis.estimatedAge !== null ? `${analysis.estimatedAge} years` : "Unknown";
-  const escapedConfidence = `${analysis.confidence}/100`;
-  const escapedScoreOverall = `${score.overall}/100`;
-  const escapedRecommendedPathway = `${recommendation.headline} (${recommendation.path.toUpperCase()})`;
-  const escapedEngineVersion = safeStr(score.engineVersion);
-  const escapedRuleId = safeStr(recommendation.matchedRuleId);
-
 
   const lines: string[] = [
     "============================================================",
@@ -116,7 +122,7 @@ export function generateDecisionReceiptText(data: DecisionReceiptData): string {
 }
 
 export function generateDecisionReceiptHtml(data: DecisionReceiptData): string {
-  const { scanId, createdAt, analysis, score, recommendation, engine, chosenPathway, completedActions = [] } = data;
+  const { scanId, createdAt, analysis, score, recommendation, chosenPathway, completedActions = [] } = data;
   const name = deviceDisplayName(analysis);
   const dateStr = new Date(createdAt).toLocaleDateString("en-IN", {
     year: "numeric",
@@ -150,13 +156,159 @@ export function generateDecisionReceiptHtml(data: DecisionReceiptData): string {
         <td class="num">${Math.round(c.weight * 100)}%</td>
       </tr>`
     )
-    .join(""  return `<!DOCTYPE html>
+    .join("");
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <title>ReLoop Circular Decision Receipt — ${escHtml(scanId.slice(0, 8))}</title>
 <style>
-${/* existing style block unchanged, keep as is */""}
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    background: #f8fafc;
+    padding: 24px;
+    line-height: 1.4;
+  }
+  .receipt-card {
+    max-width: 680px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  .brand {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .brand span { color: #16a34a; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+  .meta-item strong {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .verdict-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .verdict-box h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #166534;
+  }
+  .verdict-box .headline {
+    font-size: 18px;
+    font-weight: 700;
+    color: #14532d;
+    margin-top: 2px;
+  }
+  .score-badge {
+    text-align: center;
+    padding-left: 20px;
+    border-left: 1px solid #bbf7d0;
+  }
+  .score-badge .score-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: #16a34a;
+  }
+  .score-badge .score-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #166534;
+    letter-spacing: 0.05em;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+    margin: 20px 0 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+  }
+  th {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td.num { text-align: right; }
+  ul {
+    list-style: none;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  li {
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .severity {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .severity.critical { background: #fee2e2; color: #991b1b; }
+  .severity.warning { background: #fef3c7; color: #92400e; }
+  .severity.info { background: #e0f2fe; color: #075985; }
+  .check { color: #16a34a; font-weight: bold; }
+  .footer {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 16px;
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+  }
 </style>
 </head>
 <body>
@@ -166,7 +318,6 @@ ${/* existing style block unchanged, keep as is */""}
         <div class="brand">RE<span>LOOP</span></div>
         <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Circular Electronics Decision Receipt</p>
       </div>
-      <!-- Badge removed for compliance -->
     </div>
 
     <div class="meta-grid">
@@ -180,11 +331,11 @@ ${/* existing style block unchanged, keep as is */""}
       </div>
       <div class="meta-item">
         <strong>Device Identifier</strong>
-        ${escapedName} (${escapedDeviceType})
+        ${escHtml(name)} (${escHtml(safeStr(analysis.deviceType?.toUpperCase()))})
       </div>
       <div class="meta-item">
         <strong>Estimated Age &amp; Confidence</strong>
-        ${escapedEstimatedAge} · ${escapedConfidence} confidence
+        ${analysis.estimatedAge !== null ? `${analysis.estimatedAge} years` : "Unknown"} · ${analysis.confidence}/100 confidence
       </div>
     </div>
 
@@ -192,7 +343,7 @@ ${/* existing style block unchanged, keep as is */""}
       <div>
         <h3>Winning Circular Pathway</h3>
         <div class="headline">${escHtml(recommendation.headline)} (${escHtml((chosenPathway || recommendation.path).toUpperCase())})</div>
-        <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Rule: ${escapedRuleId} · Engine v${escapedEngineVersion}</p>
+        <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Rule: ${escHtml(safeStr(recommendation.matchedRuleId))} · Engine v${escHtml(safeStr(score.engineVersion))}</p>
       </div>
       <div class="score-badge">
         <div class="score-num">${escHtml(String(score.overall))}</div>
@@ -225,13 +376,12 @@ ${/* existing style block unchanged, keep as is */""}
     </ul>
 
     <div class="footer">
-      <span>Compliance evaluated per applicable regulations.</span>
+      <span>Evaluated under Indian E-Waste Management Rules (2022).</span>
       <span>reloop.in</span>
     </div>
   </div>
 </body>
 </html>`;
-html>`;
 }
 
 export function downloadDecisionReceipt(data: DecisionReceiptData): void {
