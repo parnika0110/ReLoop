@@ -25,9 +25,12 @@ import {
   ArrowDown,
   Boxes,
   CalendarClock,
+  Calculator,
   CircleDollarSign,
+  ClipboardList,
   Dna,
   Lightbulb,
+  MapPin,
   RotateCw,
   ScanLine,
   SlidersHorizontal,
@@ -35,16 +38,21 @@ import {
 } from "lucide-react";
 import { getScan, ApiError } from "@/lib/api/client";
 import { deviceDisplayName } from "@/lib/brand";
+import { classifyAssessmentEvidence } from "@/lib/evidence";
+import { saveDeviceToLibrary } from "@/lib/passport";
 import { WasteReveal } from "@/components/result/waste-reveal";
 import { DeviceDna } from "@/components/result/device-dna";
 import { SavedSection } from "@/components/result/saved-section";
 import { PrioritySelector } from "@/components/result/priority-selector";
 import { FutureSimulator } from "@/components/result/future-simulator";
-import { ActionSection } from "@/components/result/action-section";
+import { EvidenceBreakdown } from "@/components/result/evidence-breakdown";
+import { RepairCalculator } from "@/components/result/repair-calculator";
+import { PathwayActionPlan } from "@/components/result/pathway-action-plan";
+import { DestinationFinder } from "@/components/result/destination-finder";
 import { AttributeBreakdown } from "@/components/result/attribute-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatInr } from "@/lib/utils";
+import { formatInr, formatCurrency } from "@/lib/utils";
 import type { Priority } from "@/lib/priority";
 import type { ScanFetchResponse } from "@/types/scan";
 
@@ -132,6 +140,15 @@ export default function ResultPage({
     document.title = `${name} — ${scan.score.overall} Next Life Score`;
   }, [state]);
 
+  // Auto-save this scan to the local device library for passport tracking.
+  // Declared here (with the other hooks) so the hook count is stable across renders.
+  useEffect(() => {
+    if (state.phase !== "ready") return;
+    const { scan } = state.data;
+    if (scan.status !== "complete" || !scan.analysis || !scan.score) return;
+    saveDeviceToLibrary(scan);
+  }, [state]);
+
   // --- Loading --------------------------------------------------------------
   if (state.phase === "loading") {
     return (
@@ -208,6 +225,15 @@ export default function ResultPage({
   const { analysis, score, recommendation, engine, impactEstimates } = scan;
   const deviceName = deviceDisplayName(analysis);
   const isMock = scan.analysisSource?.provider === "mock";
+
+  // Classify evidence from the assessment for the evidence breakdown
+  const evidence = classifyAssessmentEvidence(analysis);
+
+  // Extract estimated value for the repair calculator (if available)
+  const valueEstimate = impactEstimates?.find(
+    (e) => e.metricId === "valueRetainedInr" || e.metricId === "valueRetainedUsd"
+  );
+
 
   return (
     // overflow-x-clip (not hidden) — `hidden` on one axis makes the other
@@ -372,20 +398,64 @@ export default function ResultPage({
           </div>
         </section>
 
-        {/* ── 6. ACTION ────────────────────────────────────────────── */}
-        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
-          <SectionHeading step="06 — Action" title="What to do next" icon={ArrowRight} />
-          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
-            Concrete steps for the paths worth acting on — no marketplace, no
-            fake partners.
-          </p>
-          <ActionSection />
-        </section>
+        {/* ── 6. REPAIR VS. REPLACE CALCULATOR ──────────────────── */}
+        {recommendation.path === "repair" && (
+          <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
+            <SectionHeading
+              step="06 — Calculate"
+              title="Repair vs. Replace"
+              icon={Calculator}
+            />
+            <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
+              Enter your repair quote to see if repairing is financially
+              justified — benchmarked to the consumer electronics 50% rule.
+            </p>
+            <RepairCalculator
+              estimatedCurrentValueInr={
+                valueEstimate ? Math.round(valueEstimate.value * 0.6) : undefined
+              }
+              estimatedPostRepairValueInr={
+                valueEstimate ? valueEstimate.value : undefined
+              }
+            />
+          </section>
+        )}
 
-        {/* ── 7. EVIDENCE (below the story, still one scroll away) ─── */}
+        {/* ── 7. ACTION PLAN ──────────────────────────────────────── */}
         <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
           <SectionHeading
-            step="07 — Evidence"
+            step={recommendation.path === "repair" ? "07 — Action" : "06 — Action"}
+            title="Your action plan"
+            icon={ClipboardList}
+          />
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
+            Step-by-step checklist for {recommendation.headline.toLowerCase()} — check
+            off actions as you go. Progress is saved locally.
+          </p>
+          <PathwayActionPlan
+            scanId={scan.scanId}
+            recommendedPathway={recommendation.path}
+          />
+        </section>
+
+        {/* ── 8. DESTINATION FINDER ───────────────────────────────── */}
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
+          <SectionHeading
+            step={recommendation.path === "repair" ? "08 — Find" : "07 — Find"}
+            title="Where to take it"
+            icon={MapPin}
+          />
+          <p className="-mt-2 mb-6 max-w-2xl text-sm leading-relaxed text-stone">
+            Verified recyclers, repair centers, and circular economy partners
+            across India — every entity is CPCB-documented.
+          </p>
+          <DestinationFinder recommendedCategory={recommendation.path} />
+        </section>
+
+        {/* ── EVIDENCE (below the story, still one scroll away) ─── */}
+        <section className="animate-fade-up pt-12 md:pt-16 border-t border-graphite/15">
+          <SectionHeading
+            step={recommendation.path === "repair" ? "09 — Evidence" : "08 — Evidence"}
             title="Evidence & assumptions"
             icon={Activity}
           />
@@ -414,6 +484,12 @@ export default function ResultPage({
                 })}
               </span>
             </div>
+          </div>
+
+          {/* Evidence Breakdown: Observed / Inferred / Unknown */}
+          <div className="mb-8">
+            <p className="label-mono mb-4 font-medium text-vermilion">Assessment evidence breakdown</p>
+            <EvidenceBreakdown evidence={evidence} />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
@@ -452,7 +528,11 @@ export default function ResultPage({
                       : e.metricId === "wasteAvoidedKg"
                         ? Boxes
                         : CircleDollarSign;
-                  const isCurrency = e.metricId === "valueRetainedInr" || e.metricId === "valueRetainedUsd" || e.unit === "INR";
+                  const isCurrency =
+                    e.metricId === "valueRetainedInr" ||
+                    e.metricId === "valueRetainedUsd" ||
+                    e.unit === "INR" ||
+                    e.unit === "USD";
                   return (
                     <div
                       key={e.metricId}
@@ -469,7 +549,7 @@ export default function ResultPage({
                         </div>
                         <p className="display mt-3 text-3xl sm:text-4xl font-medium text-ink tabular-nums leading-none">
                           {isCurrency ? (
-                            formatInr(e.value)
+                            formatCurrency(e.value, e.metricId, e.unit)
                           ) : (
                             <>
                               {e.value}
@@ -485,7 +565,7 @@ export default function ResultPage({
                         <p className="mt-3 pt-2 border-t border-graphite/10 font-mono text-[11px] text-stone">
                           plausible{" "}
                           {isCurrency
-                            ? `${formatInr(e.range.low)}–${formatInr(e.range.high)}`
+                            ? `${formatCurrency(e.range.low, e.metricId, e.unit)}–${formatCurrency(e.range.high, e.metricId, e.unit)}`
                             : `${e.range.low}–${e.range.high} ${e.unit}`}
                         </p>
                       )}

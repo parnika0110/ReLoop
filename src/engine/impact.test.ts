@@ -13,6 +13,7 @@ import {
 } from "@/engine/impact-config";
 import { NEXT_LIFE_PATHS, type ImpactEstimate } from "@/types/score";
 import type { DeviceAnalysis, DeviceType } from "@/types/analysis";
+import { formatCurrency, formatInr, formatUsd } from "@/lib/utils";
 
 const DEVICE_TYPES: DeviceType[] = ["laptop", "smartphone", "tablet"];
 
@@ -265,5 +266,31 @@ describe("simulator contract — changing the selected pathway", () => {
         );
       }
     }
+  });
+});
+
+describe("currency audit & backward compatibility", () => {
+  it("uses metricId valueRetainedInr and unit INR by default", () => {
+    for (const device of DEVICE_TYPES) {
+      const estimates = estimateImpact(analysisOf(device), "repair");
+      const val = estimates.find((e) => e.metricId === "valueRetainedInr");
+      expect(val).toBeDefined();
+      expect(val?.unit).toBe("INR");
+      expect(val?.assumptions.join(" ")).toContain("₹");
+      expect(val?.basis).toContain("Indian secondary markets");
+    }
+  });
+
+  it("safely formats legacy USD values with $ and never converts them to ₹", () => {
+    expect(formatInr(28000)).toBe("₹28,000");
+    expect(formatUsd(350)).toBe("$350");
+    // Legacy metricId or USD unit must render with $
+    expect(formatCurrency(350, "valueRetainedUsd", "USD")).toBe("$350");
+    expect(formatCurrency(350, "legacyMetric", "USD")).toBe("$350");
+    // Current metricId valueRetainedInr renders with ₹
+    expect(formatCurrency(28000, "valueRetainedInr", "INR")).toBe("₹28,000");
+    // Invalid / non-finite values return default symbols cleanly
+    expect(formatCurrency(NaN, "valueRetainedInr", "INR")).toBe("₹0");
+    expect(formatCurrency(NaN, "valueRetainedUsd", "USD")).toBe("$0");
   });
 });

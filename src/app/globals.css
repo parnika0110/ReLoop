@@ -219,6 +219,26 @@ h2 {
   --color-stone: #6B665D;
   --color-vermilion-fill: #E8451E;
   --color-vermilion-text: #B32F10;
+
+  /* Landing-only tokens (scoped here, never on :root, so the scan/result
+     pages — which do not wrap in .landing-theme — are unaffected). */
+  --color-hairline: rgba(43, 41, 38, 0.14);
+  --color-hairline-strong: rgba(43, 41, 38, 0.28);
+  --color-plate: #ffffff;
+}
+
+/* Focus ring inside the landing scope only. Vermilion fill reads ≥3:1 on
+   BOTH paper (≈3.3:1) and graphite (≈3.7:1) — the global lime ring is nearly
+   invisible on paper, so the landing overrides it without touching the
+   :root / global rule used by scan + result. */
+.landing-theme :focus-visible {
+  outline: 2px solid var(--color-vermilion-fill);
+  outline-offset: 3px;
+
+  /* ui/button's `focus-visible:ring-2 focus-visible:ring-lime/60` would still
+     paint a lime halo on top of this ring. Lime is banned on the landing page,
+     so the shadow is dropped here (the ring on scan/result is untouched). */
+  box-shadow: none;
 }
 
 /* Scoped button contrast & styling for .landing-theme */
@@ -290,3 +310,57 @@ h2 {
 @utility animate-leader-draw {
   animation: leader-draw 1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── Landing specimen system (reads .landing-theme scoped vars) ── */
+@utility border-hairline { border-color: var(--color-hairline); }
+@utility border-hairline-strong { border-color: var(--color-hairline-strong); }
+@utility bg-plate { background-color: var(--color-plate); }
+
+/* Grayscale + contrast treatment for the specimen photo. The source file is
+   never modified — the treatment lives entirely in CSS. */
+@utility specimen-tone {
+  filter: grayscale(1) contrast(1.08) brightness(1.02);
+}
+
+/* SVG leader-line draw-in. The line carries pathLength="1" so the dash math
+   is resolution-independent. Base state (no animation / reduced motion) is
+   fully drawn: stroke-dashoffset defaults to 0. */
+@keyframes leader-draw-in {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@utility animate-leader-draw-in {
+  stroke-dasharray: 1;
+  animation: leader-draw-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Landing palette: explicit variants ─────────────────────────────────
+ * Two things Tailwind cannot build for us, both found by measuring rendered
+ * elements rather than by reading the source:
+ *
+ * 1. `/opacity` modifiers do NOT apply to custom `@utility` colours, so
+ *    `text-paper/70`, `bg-paper/10`, `border-paper/10` emitted no CSS at all
+ *    and the element fell back to inheriting its parent colour. That made the
+ *    footer render ink-on-graphite (1.28:1 — effectively invisible) and
+ *    silently removed Chapter 02's hairline grid dividers.
+ *
+ * 2. `text-vermilion` resolves to the BRIGHT fill (#E8451E): `@theme`'s
+ *    `--color-vermilion` generates a competing `.text-vermilion` that wins the
+ *    cascade over the `@utility` of the same name. On paper the bright fill is
+ *    only 3.33:1, so small vermilion text there must use the darker text
+ *    variant (5.30:1). Naming the two variants explicitly removes the
+ *    reliance on cascade order at every call site.
+ *
+ * All of this is scoped to `.landing-theme` so the scan and result pages are
+ * untouched — they do not define these tokens.
+ */
+.landing-theme .text-vermilion-text { color: var(--color-vermilion-text); }
+.landing-theme .text-vermilion-fill { color: var(--color-vermilion-fill); }
+
+.landing-theme .text-paper\/80 { color: color-mix(in srgb, var(--color-paper) 80%, transparent); }
+.landing-theme .text-paper\/70 { color: color-mix(in srgb, var(--color-paper) 70%, transparent); }
+.landing-theme .text-paper\/60 { color: color-mix(in srgb, var(--color-paper) 60%, transparent); }
+.landing-theme .text-paper\/50 { color: color-mix(in srgb, var(--color-paper) 50%, transparent); }
+
+.landing-theme .bg-paper\/10 { background-color: color-mix(in srgb, var(--color-paper) 10%, transparent); }
+.landing-theme .border-paper\/10 { border-color: color-mix(in srgb, var(--color-paper) 10%, transparent); }
